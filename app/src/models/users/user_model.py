@@ -1,5 +1,4 @@
 import uuid
-
 from sqlalchemy import TEXT, UUID, Boolean, Column, DateTime, String, func
 from sqlalchemy.orm import relationship
 from app.src.config.base_file import Base

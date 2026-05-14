@@ -8,6 +8,10 @@ from alembic import context
 from app.src.models.users.user_model import UserModel
 from app.src.models.users.user_profile import UserProfile
 from app.src.models.users.user_address import UserAddress
+from app.src.models.users.login_logs import LoginLogs
+from app.src.models.accountsandsavings.accounts_model import AccountsModel
+from app.src.models.accountsandsavings.transaction_model import TransactionModel
+from app.src.models.users.user_accounts import UserAccounts
 
 from app.src.config.base_file import Base
 
