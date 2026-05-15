@@ -3,6 +3,7 @@ from datetime import date
 from typing import Optional
 from uuid import UUID
 
+
 class UserCreate(BaseModel):
     # Auth Data (for user Model)
     email: EmailStr
@@ -24,11 +25,19 @@ class UserCreate(BaseModel):
 
     # Address Data (for UserAddress)
     nationality: str
-    district : str
+    district: str
     sub_county: str
     parish: str
     village: str
     postal_code: Optional[str] | None
+
+
+class UserSignIn(BaseModel):
+    email: EmailStr
+    password: str
+    location_country: Optional[str] | None = None
+    location_city: Optional[str] | None = None
+
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
@@ -59,5 +68,3 @@ class UserResponse(BaseModel):
     # parish: str
     # village: str
     # postal_code: str
-
-
