@@ -4,18 +4,22 @@ from app.src.models.users.user_model import UserModel
 from app.src.models.users.user_profile import UserProfile
 from app.src.models.users.user_address import UserAddress
 from app.src.schemas.users.user_schema import UserCreate
+from app.src.utils.auth import hash_password
 from sqlalchemy.exc import SQLAlchemyError
 
 
 def create_new_user(db: Session, user: UserCreate):
     # 1. Insert into users table
     try:
+        # Hash the password if provided, otherwise leave as None so model default applies
+        pwd = hash_password(user.password) if user.password else None
+
         db_user = UserModel(
             email=user.email,
             username=user.username,
             first_name=user.first_name,
             last_name=user.last_name,
-            password=user.password,
+            password=pwd,
         )
 
         db.add(db_user)
@@ -66,6 +70,4 @@ def create_new_user(db: Session, user: UserCreate):
 
     except Exception as e:
         print(f"Unexpected Error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Internal server error"
-        )
+        raise HTTPException(status_code=500, detail=f"Internal server error")

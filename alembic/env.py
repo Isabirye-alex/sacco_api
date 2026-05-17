@@ -5,13 +5,9 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.src.models.users.user_model import UserModel
-from app.src.models.users.user_profile import UserProfile
-from app.src.models.users.user_address import UserAddress
-from app.src.models.users.login_logs import LoginLogs
-from app.src.models.accountsandsavings.accounts_model import AccountsModel
-from app.src.models.accountsandsavings.transaction_model import TransactionModel
-from app.src.models.users.user_accounts import UserAccounts
+# Import all models via the package init to register them on Base.metadata.
+# This includes: users, member, shares, savings, ledger, tenant, and accounts/transactions.
+from app.src.models import *  # noqa: F401, F403
 
 from app.src.config.base_file import Base
 

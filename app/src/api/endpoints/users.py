@@ -7,9 +7,10 @@ from app.src.crud.users.user_create_crud import create_new_user
 
 router = APIRouter()
 
-@router.post('/', response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = get_user_by_email(db, user.email)
     if existing_user:
-        raise HTTPException(status_code=400, detail='Email Alreay registered')
+        raise HTTPException(status_code=400, detail="Email Already registered")
     return create_new_user(db, user)

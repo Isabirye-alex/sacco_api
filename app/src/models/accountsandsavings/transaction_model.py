@@ -7,7 +7,7 @@ class TransactionModel(Base):
 
     __tablename__ = 'transactions'
     txn_id = Column(UUID(as_uuid=True), primary_key=True, nullable=False,default=uuid.uuid4)
-    user_id = Column(UUID, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    member_id = Column(UUID, ForeignKey('users.member_id', ondelete='CASCADE'), nullable=False)
     transaction_id = Column(String(100), nullable=False)
     transaction_date = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 

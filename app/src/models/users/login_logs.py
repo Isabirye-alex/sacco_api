@@ -1,16 +1,16 @@
-from app.src.config.base_file import Base
+from app.src.config.base_file import Base, TimestampMixin
 from sqlalchemy import Column, Integer, TEXT, DateTime, String, UUID, ForeignKey, func
 from sqlalchemy.orm import relationship
 import uuid
 
 
-class LoginLogs(Base):
+class LoginLogs(TimestampMixin,Base):
     __tablename__ = "login_logs"
 
     log_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
+    member_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("users.user_id", ondelete="CASCADE"),
+        ForeignKey("users.member_id", ondelete="CASCADE"),
         nullable=True,
     )
     login_at = Column(

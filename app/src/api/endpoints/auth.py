@@ -6,6 +6,7 @@ from app.src.crud.get_user_by_email import get_user_by_email
 from app.src.crud.users.login_log_crud import create_login_log, get_login_attempt_count
 from app.src.models.users.login_logs import LoginLogs
 from app.src.schemas.users.user_schema import UserResponse, UserSignIn
+from app.src.utils.auth import verify_password
 
 router = APIRouter()
 
@@ -48,7 +49,7 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
         request, auth.location_country, auth.location_city
     )
 
-    if not user or user.password != auth.password:
+    if not user or not verify_password(auth.password, user.password):
         attempt_count = failed_attempts + 1
         log_entry = LoginLogs(
             user_id=user.user_id if user else None,
