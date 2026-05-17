@@ -7,7 +7,7 @@ from alembic import context
 
 # Import all models via the package init to register them on Base.metadata.
 # This includes: users, member, shares, savings, ledger, tenant, and accounts/transactions.
-from app.src.models import *  # noqa: F401, F403
+from app.src.models import * 
 
 from app.src.models import Base
 

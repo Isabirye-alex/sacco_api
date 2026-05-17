@@ -105,11 +105,11 @@ class ShareAccount(TimestampMixin, Base):
     )  # shares_held × nominal_value
     is_active = Column(Boolean, default=True, nullable=False)
 
-    member = relationship("Member", back_populates="share_accounts")
+    # member = relationship("Member", back_populates="share_accounts")
     product = relationship("ShareProduct", back_populates="accounts")
-    transactions = relationship(
-        "ShareTransaction", back_populates="account", lazy="dynamic"
-    )
+    # transactions = relationship(
+    #     "ShareTransaction", back_populates="account", lazy="joined"
+    # )
     dividend_payments = relationship(
         "DividendPayment", back_populates="share_account", lazy="dynamic"
     )
@@ -131,10 +131,10 @@ class ShareTransaction(TimestampMixin, Base):
     )
 
     tx_type = Column(SAEnum(ShareTxTypeEnum), nullable=False)
-    shares = Column(Numeric(18, 4), nullable=False)  # + purchase / − redemption
+    shares = Column(Numeric(18, 4), nullable=False)
     price_per_share = Column(Numeric(18, 4), nullable=False)
     total_amount = Column(Numeric(18, 4), nullable=False)
-    shares_after = Column(Numeric(18, 4), nullable=False)  # snapshot
+    shares_after = Column(Numeric(18, 4), nullable=False)
     reference = Column(String(100), nullable=True)
     description = Column(Text, nullable=True)
     transaction_date = Column(Date, nullable=False)
@@ -146,9 +146,9 @@ class ShareTransaction(TimestampMixin, Base):
 
     processed_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
-    account = relationship(
-        "ShareAccount", foreign_keys=[account_id], back_populates="transactions"
-    )
+    # account = relationship(
+    #     "ShareAccount", foreign_keys=[account_id], back_populates="transactions"
+    # )
     ledger_entry = relationship("LedgerEntry")
     processed_by = relationship("User")
 

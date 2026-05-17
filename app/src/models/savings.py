@@ -1,10 +1,3 @@
-"""
-Savings & Accounts
-==================
-SavingsProduct    – configurable product (Ordinary Savings, Fixed Deposit, etc.)
-SavingsAccount    – a member's instance of a product
-SavingsTransaction– individual credit / debit entries (sourced from the ledger)
-"""
 
 import enum
 from sqlalchemy import (
@@ -18,12 +11,11 @@ from sqlalchemy import (
     Enum as SAEnum,
     ForeignKey,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import UUID
 from sqlalchemy.orm import relationship
 
 from app.src.config.base_file import Base, TimestampMixin
 
-# ─── Enumerations ────────────────────────────────────────────────────────────
 
 
 class SavingsProductTypeEnum(str, enum.Enum):
@@ -119,7 +111,7 @@ class SavingsAccount(TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     # relationships
-    member = relationship("Member", back_populates="savings_accounts")
+    # member = relationship("Member", back_populates="savings_accounts")
     product = relationship("SavingsProduct", back_populates="accounts")
     transactions = relationship(
         "SavingsTransaction", back_populates="account", lazy="dynamic"

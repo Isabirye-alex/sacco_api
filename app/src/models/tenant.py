@@ -5,6 +5,8 @@ Hierarchy:  Organisation (top-level SACCO body)
                 └── Branch  (village / ward office)
 """
 
+import uuid
+
 from sqlalchemy import Column, String, Text, Boolean, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -20,7 +22,7 @@ class Organisation(TimestampMixin, Base):
     """
 
     __tablename__ = "organisations"
-
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, unique=True)
     short_code = Column(String(20), nullable=False, unique=True)  # e.g. "KBSACCO"
     registration_no = Column(String(100), nullable=True)
@@ -41,9 +43,7 @@ class Organisation(TimestampMixin, Base):
     )  # annual %
 
     # relationships
-    branches = relationship("Branch", back_populates="organisation", lazy="dynamic")
-    members = relationship("Member", back_populates="organisation", lazy="dynamic")
-
+    branches = relationship("Branch", back_populates="organisation", lazy="joined", uselist=False)
 
 class Branch(TimestampMixin, Base):
     """
@@ -52,18 +52,18 @@ class Branch(TimestampMixin, Base):
     """
 
     __tablename__ = "branches"
-
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organisation_id = Column(
         UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
     )
-    name = Column(String(255), nullable=False)
+    branch_name = Column(String(255), nullable=False)
     code = Column(String(20), nullable=False)  # unique within org
     location = Column(String(255), nullable=True)
     manager_name = Column(String(255), nullable=True)
-    phone = Column(String(30), nullable=True)
-    email = Column(String(255), nullable=True)
+    branch_phone = Column(String(30), nullable=True)
+    branch_email = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
     # relationships
     organisation = relationship("Organisation", back_populates="branches")
-    members = relationship("Member", back_populates="branch", lazy="dynamic")
+    members = relationship("Member", back_populates="branch", lazy="joined", uselist=False)

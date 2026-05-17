@@ -11,14 +11,18 @@ from app.src.config.base_file import Base, TimestampMixin  # noqa: F401
 from app.src.models.tenant import Organisation, Branch  # noqa: F401
 
 # ── Members & Auth ─────────────────────────────────────────────────────────
-from app.src.models.member import (  # noqa: F401
+from app.src.models.member import (
+    MaritalStatus,
+    MemberStatus,
     Member,
     NextOfKin,
     User,
+    UserType,
+    Roles,
 )
 
 # ── Savings ────────────────────────────────────────────────────────────────
-from app.src.models.savings import (  # noqa: F401
+from app.src.models.savings import (
     SavingsProduct,
     SavingsAccount,
     SavingsTransaction,
@@ -73,12 +77,6 @@ from app.src.models.ledger import (  # noqa: F401
 # ── Users & Auth (existing) ───────────────────────────────────────────────
 from app.src.models.users.login_logs import LoginLogs  # noqa: F401
 
-# ── Accounts & Savings (existing) ─────────────────────────────────────────
-from app.src.models.accountsandsavings.accounts_model import AccountsModel  # noqa: F401
-from app.src.models.accountsandsavings.transaction_model import (
-    TransactionModel,
-)  # noqa: F401
-
 __all__ = [
     "Base",
     "TimestampMixin",
@@ -86,9 +84,14 @@ __all__ = [
     "Organisation",
     "Branch",
     # member
+    "MaritalStatus",
+    "MemberStatus",
     "Member",
     "User",
     "NextOfKin",
+    "UserType",
+    "Roles",
+
     # savings
     "SavingsProduct",
     "SavingsAccount",
@@ -132,8 +135,4 @@ __all__ = [
     "LedgerEntryStatusEnum",
     # users (existing)
     "LoginLogs",
-    
-    # accounts (existing)
-    "AccountsModel",
-    "TransactionModel",
 ]

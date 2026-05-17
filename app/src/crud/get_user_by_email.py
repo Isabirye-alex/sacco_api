@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from app.src.models.users.user_model import UserModel
+from app.src.models.member import User
+
 
 def get_user_by_email(db: Session, email):
-    user = db.query(UserModel).filter(UserModel.email == email).first()
+    user = db.query(User).filter(User.email == email).first()
     return user

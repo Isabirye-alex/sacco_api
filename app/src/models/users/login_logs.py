@@ -10,7 +10,7 @@ class LoginLogs(TimestampMixin,Base):
     log_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     member_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("users.member_id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
     )
     login_at = Column(
@@ -28,4 +28,4 @@ class LoginLogs(TimestampMixin,Base):
     location_country = Column(String(50), nullable=True)
     location_city = Column(String(50), nullable=True)
 
-    user = relationship("UserModel", lazy="select")
+    user = relationship("User", lazy="select")

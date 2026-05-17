@@ -1,8 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.src.models.users.user_model import UserModel
-from app.src.models.users.user_profile import UserProfile
-from app.src.models.users.user_address import UserAddress
+from app.src.models.member import User
 from app.src.schemas.users.user_schema import UserCreate
 from app.src.utils.auth import hash_password
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,7 +12,7 @@ def create_new_user(db: Session, user: UserCreate):
         # Hash the password if provided, otherwise leave as None so model default applies
         pwd = hash_password(user.password) if user.password else None
 
-        db_user = UserModel(
+        db_user = User(
             email=user.email,
             username=user.username,
             first_name=user.first_name,
@@ -26,33 +24,6 @@ def create_new_user(db: Session, user: UserCreate):
         db.flush()  # Get the user_id
 
         # 2. Create user profile
-        db_profile = UserProfile(
-            user_id=db_user.user_id,
-            member_id=user.member_id,
-            phone_number=user.phone_number,
-            id_number=user.id_number,
-            date_of_birth=user.date_of_birth,
-            occupation=user.occupation,
-            monthly_income=user.monthly_income,
-            marital_status=user.marital_status,
-            primary_language=user.primary_language,
-            employer_name=user.employer_name,
-        )
-
-        db.add(db_profile)
-
-        # 3. Create address
-        db_address = UserAddress(
-            user_id=db_user.user_id,
-            district=user.district,
-            nationality=user.nationality,
-            sub_county=user.sub_county,
-            village=user.village,
-            parish=user.parish,
-            postal_code=user.postal_code,
-        )
-
-        db.add(db_address)
         db.commit()
         db.refresh(db_user)
         return db_user
