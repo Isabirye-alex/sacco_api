@@ -72,7 +72,7 @@ class PenaltyTypeEnum(str, enum.Enum):
     EARLY_CLOSURE  = "EARLY_CLOSURE"
 
 
-# ─── Models ──────────────────────────────────────────────────────────────────
+# Models
 
 class LoanProduct(TimestampMixin, Base):
     """A configurable loan product (type/category)."""

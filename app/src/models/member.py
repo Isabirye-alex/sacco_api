@@ -9,6 +9,7 @@ NextOfKin   – emergency contacts / beneficiaries
 """
 
 import enum
+import uuid
 from sqlalchemy import (
     Column,
     String,
@@ -61,6 +62,7 @@ class Member(TimestampMixin, Base):
     """
 
     __tablename__ = "members"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     organisation_id = Column(
         UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
@@ -98,7 +100,7 @@ class Member(TimestampMixin, Base):
     # relationships
     organisation = relationship("Organisation", back_populates="members")
     branch = relationship("Branch", back_populates="members")
-    user = relationship("User", back_populates="member", uselist=False)
+    user = relationship("User",lazy='joined' ,back_populates="member", uselist=False)
     next_of_kin = relationship("NextOfKin", back_populates="member", lazy="dynamic")
     savings_accounts = relationship(
         "SavingsAccount", back_populates="member", lazy="dynamic"
@@ -125,7 +127,7 @@ class User(TimestampMixin, Base):
     """
 
     __tablename__ = "users"
-
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organisation_id = Column(
         UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
     )
@@ -143,7 +145,7 @@ class User(TimestampMixin, Base):
     last_login = Column(String(50), nullable=True)  # ISO timestamp string
 
     # relationships
-    member = relationship("Member", back_populates="user")
+    member = relationship("Member", back_populates="user", lazy="raise")
 
     __table_args__ = (
         UniqueConstraint("organisation_id", "email", name="uq_user_email_per_org"),
@@ -154,7 +156,7 @@ class NextOfKin(TimestampMixin, Base):
     """Emergency contacts and/or loan guarantors / beneficiaries."""
 
     __tablename__ = "next_of_kin"
-
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     member_id = Column(
         UUID(as_uuid=True), ForeignKey("members.id"), nullable=False, index=True
     )

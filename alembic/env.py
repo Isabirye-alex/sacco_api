@@ -9,7 +9,7 @@ from alembic import context
 # This includes: users, member, shares, savings, ledger, tenant, and accounts/transactions.
 from app.src.models import *  # noqa: F401, F403
 
-from app.src.config.base_file import Base
+from app.src.models import Base
 
 from app.src.config.settings import settings
 
