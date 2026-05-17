@@ -1,13 +1,3 @@
-"""
-Members & Auth
-==============
-Member      – the person who belongs to a SACCO branch
-User        – login credentials / roles (1-to-1 with Member for regular members;
-              staff accounts may exist without a Member record)
-Role        – e.g. MEMBER, BRANCH_MANAGER, TREASURER, ADMIN, SUPER_ADMIN
-NextOfKin   – emergency contacts / beneficiaries
-"""
-
 import enum
 import uuid
 from sqlalchemy import (
@@ -16,7 +6,6 @@ from sqlalchemy import (
     Text,
     Boolean,
     Date,
-    Enum as SAEnum,
     ForeignKey,
     UniqueConstraint,
 )
@@ -25,45 +14,64 @@ from sqlalchemy.orm import relationship
 
 from app.src.config.base_file import Base, TimestampMixin
 
-# ─── Enumerations ────────────────────────────────────────────────────────────
+
+import uuid
+from sqlalchemy import Column, String, Text, Boolean, Date, ForeignKey, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from app.src.config.base_file import Base, TimestampMixin
+
+# ─── New Lookup Tables ────────────────────────────────────────────────────────
 
 
-class GenderEnum(str, enum.Enum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
-    OTHER = "OTHER"
-    UNSPECIFIED = "UNSPECIFIED"
+class Gender(TimestampMixin, Base):
+    """Dynamic lookup table for genders managed by Admins."""
+
+    __tablename__ = "genders"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    code = Column(String(50), nullable=False, unique=True)  # e.g., "MALE", "FEMALE"
+    name = Column(String(100), nullable=False)  # e.g., "Male", "Female"
+    description = Column(Text, nullable=True)
+
+    members = relationship("Member", back_populates="gender")
 
 
-class MemberStatusEnum(str, enum.Enum):
-    PENDING = "PENDING"  # application submitted, not yet approved
-    ACTIVE = "ACTIVE"
-    DORMANT = "DORMANT"  # no activity for > 6 months
-    SUSPENDED = "SUSPENDED"
-    EXITED = "EXITED"  # withdrew from SACCO
+class MemberStatus(TimestampMixin, Base):
+    """Dynamic lookup table for member account states."""
+
+    __tablename__ = "member_statuses"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    code = Column(String(50), nullable=False, unique=True)  # e.g., "ACTIVE", "DORMANT"
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+
+    members = relationship("Member", back_populates="status")
 
 
-class RoleEnum(str, enum.Enum):
-    MEMBER = "MEMBER"
-    LOAN_OFFICER = "LOAN_OFFICER"
-    TREASURER = "TREASURER"
-    BRANCH_MANAGER = "BRANCH_MANAGER"
-    ADMIN = "ADMIN"
-    SUPER_ADMIN = "SUPER_ADMIN"
+class Role(TimestampMixin, Base):
+    """Dynamic lookup table for system roles and permissions."""
 
+    __tablename__ = "roles"
 
-# ─── Models ──────────────────────────────────────────────────────────────────
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    code = Column(
+        String(50), nullable=False, unique=True
+    )  # e.g., "LOAN_OFFICER", "ADMIN"
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+
+    users = relationship("User", back_populates="role")
+
 
 
 class Member(TimestampMixin, Base):
-    """
-    A registered SACCO member. Belongs to exactly one Branch (and therefore
-    one Organisation).  A member may also have a User account for portal access.
-    """
+    """A registered SACCO member linking to dynamic lookups."""
 
     __tablename__ = "members"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organisation_id = Column(
         UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
     )
@@ -71,62 +79,48 @@ class Member(TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
 
-    # identity
+    # Foreign Keys replacing the old SAEnum columns
+    gender_id = Column(UUID(as_uuid=True), ForeignKey("genders.id"), nullable=False)
+    status_id = Column(
+        UUID(as_uuid=True), ForeignKey("member_statuses.id"), nullable=False
+    )
+
+    # Identity & Contact
     member_no = Column(String(50), nullable=False)
     first_name = Column(String(100), nullable=False)
     middle_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=False)
-    gender = Column(SAEnum(GenderEnum), default=GenderEnum.UNSPECIFIED, nullable=False)
     date_of_birth = Column(Date, nullable=True)
-    national_id = Column(String(50), nullable=True)  # NIN / passport
+    national_id = Column(String(50), nullable=True)
     photo_url = Column(String(512), nullable=True)
-
-    # contact
     phone_primary = Column(String(30), nullable=True)
     phone_secondary = Column(String(30), nullable=True)
     email = Column(String(255), nullable=True)
     country = Column(Text, nullable=True)
     village = Column(String(255), nullable=True)
     district = Column(String(255), nullable=True)
-
-    # membership
-    status = Column(
-        SAEnum(MemberStatusEnum), default=MemberStatusEnum.PENDING, nullable=False
-    )
     joined_date = Column(Date, nullable=True)
     exit_date = Column(Date, nullable=True)
     exit_reason = Column(Text, nullable=True)
 
-    # relationships
-    organisation = relationship("Organisation", back_populates="members")
-    branch = relationship("Branch", back_populates="members")
-    user = relationship("User",lazy='joined' ,back_populates="member", uselist=False)
+    # Lookup Relationships
+    gender = relationship("Gender", back_populates="members")
+    status = relationship("MemberStatus", back_populates="members")
+
+    # Core Relationships
+    user = relationship("User", lazy="joined", back_populates="member", uselist=False)
     next_of_kin = relationship("NextOfKin", back_populates="member", lazy="dynamic")
-    savings_accounts = relationship(
-        "SavingsAccount", back_populates="member", lazy="dynamic"
-    )
-    share_accounts = relationship(
-        "ShareAccount", back_populates="member", lazy="dynamic"
-    )
-    loans = relationship("Loan", back_populates="member", lazy="dynamic")
 
     __table_args__ = (
         UniqueConstraint("organisation_id", "member_no", name="uq_member_no_per_org"),
     )
 
-    @property
-    def full_name(self):
-        parts = [self.first_name, self.middle_name, self.last_name]
-        return " ".join(p for p in parts if p)
-
 
 class User(TimestampMixin, Base):
-    """
-    Login account.  Can be linked to a Member (member portal login) or
-    exist independently (staff / admin accounts).
-    """
+    """Login account linking to a dynamic Role table."""
 
     __tablename__ = "users"
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organisation_id = Column(
         UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
@@ -135,16 +129,20 @@ class User(TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("members.id"), nullable=True, unique=True
     )
 
+    # Foreign Key replacing the old SAEnum column
+    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
+
     email = Column(String(255), nullable=False)
     phone = Column(String(30), nullable=True)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(SAEnum(RoleEnum), default=RoleEnum.MEMBER, nullable=False)
-
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
-    last_login = Column(String(50), nullable=True)  # ISO timestamp string
+    last_login = Column(String(50), nullable=True)
 
-    # relationships
+    # Lookup Relationship
+    role = relationship("Role", back_populates="users")
+
+    # Core Relationship
     member = relationship("Member", back_populates="user", lazy="raise")
 
     __table_args__ = (

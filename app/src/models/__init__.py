@@ -14,9 +14,6 @@ from app.src.models.tenant import Organisation, Branch  # noqa: F401
 from app.src.models.member import (  # noqa: F401
     Member,
     NextOfKin,
-    GenderEnum,
-    MemberStatusEnum,
-    RoleEnum,
     User,
 )
 
@@ -92,9 +89,6 @@ __all__ = [
     "Member",
     "User",
     "NextOfKin",
-    "GenderEnum",
-    "MemberStatusEnum",
-    "RoleEnum",
     # savings
     "SavingsProduct",
     "SavingsAccount",
