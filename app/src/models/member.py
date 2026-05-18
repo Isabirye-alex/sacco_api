@@ -198,8 +198,7 @@ class User(TimestampMixin, Base):
         UniqueConstraint("organisation_id", "email", name="uq_user_email_per_org"),
     )
 
-    # ── convenience helpers (use in FastAPI dependencies) ─────────────────────
-
+    # convenience helpers (used in FastAPI dependencies) 
     @property
     def is_member_user(self) -> bool:
         """True when this account belongs to a regular SACCO member."""
@@ -284,7 +283,7 @@ class Member(TimestampMixin, Base):
     exit_date = Column(Date, nullable=True)
     exit_reason = Column(Text, nullable=True)
 
-    # ── relationships ─────────────────────────────────────────────────────────
+    #relationships
     organisation = relationship("Organisation", back_populates="members", lazy="select")
     branch = relationship(
         "Branch", back_populates="members", lazy="joined", uselist=False
@@ -315,10 +314,6 @@ class Member(TimestampMixin, Base):
         UniqueConstraint("organisation_id", "member_no", name="uq_member_no_per_org"),
     )
 
-    @property
-    def full_name(self) -> str:
-        parts = [self.first_name, self.middle_name, self.last_name]
-        return " ".join(p for p in parts if p)
 
 
 class NextOfKin(TimestampMixin, Base):

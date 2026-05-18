@@ -87,15 +87,15 @@ class NextOfKinResponse(BaseModel):
 
 
 class MemberCreate(BaseModel):
+    organisation_id: UUID
     first_name: str
     middle_name: Optional[str] = None
     last_name: str
     email: Optional[EmailStr] = None
-    phone: Optional[str] = None
     branch_id: UUID
     gender_id: UUID
     status_id: UUID
-    user_id: UUID
+    user_id: Optional[UUID] = None
     member_no: str
     date_of_birth: Optional[date] = None
     national_id: Optional[str] = None
@@ -119,15 +119,15 @@ class MemberResponse(BaseModel):
     middle_name: Optional[str] = None
     last_name: str
     email: Optional[EmailStr] = None
-    phone: Optional[str] = None
     branch_id: UUID
     gender_id: UUID
     status_id: UUID
-    user_id: UUID
+    user_id: Optional[UUID] = None
+    organisation_id: Optional[UUID] = None
     member_no: str
     date_of_birth: Optional[date] = None
     national_id: Optional[str] = None
-    marital_status: Optional[UUID] = None
+    marital_status_id: Optional[UUID] = None
     photo_url: Optional[str] = None
     phone_primary: Optional[str] = None
     phone_secondary: Optional[str] = None

@@ -1,3 +1,4 @@
+from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 
 from app.src.models.member import (
@@ -20,19 +21,18 @@ from app.src.schemas.member.member_schema import (
 
 def create_member(db: Session, member: MemberCreate):
     db_member = Member(
+        organisation_id=member.organisation_id,
         first_name=member.first_name,
         middle_name=member.middle_name,
         last_name=member.last_name,
         email=member.email,
-        phone=member.phone,
         branch_id=member.branch_id,
         gender_id=member.gender_id,
         status_id=member.status_id,
-        user_id=member.user_id,
         member_no=member.member_no,
         date_of_birth=member.date_of_birth,
         national_id=member.national_id,
-        marital_status=member.marital_status,
+        marital_status_id=member.marital_status,
         photo_url=member.photo_url,
         phone_primary=member.phone_primary,
         phone_secondary=member.phone_secondary,

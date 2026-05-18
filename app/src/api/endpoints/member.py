@@ -40,6 +40,7 @@ def create_member_endpoint(member: MemberCreate, db: Session = Depends(get_db)):
     try:
         return create_member(db, member)
     except Exception as e:
+        print(f'Error occured: {e}')
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error occurred: {e}",

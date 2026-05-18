@@ -3,12 +3,24 @@ from datetime import date
 from typing import Optional
 from uuid import UUID
 
+from app.src.models.member import UserTypeEnum
+
 
 class UserCreate(BaseModel):
-    # Auth Data (for user Model)
+    # Required DB Fields
+    organisation_id: UUID
     role_id: UUID
-    hashed_password: str
-    
+    email: EmailStr
+    first_name: str
+    last_name: str
+    user_type: UserTypeEnum = UserTypeEnum.MEMBER
+
+    password: str
+
+    # Optional DB Fields
+    phone: Optional[str] | None
+    member_id: Optional[UUID] = None
+
 
 class UserSignIn(BaseModel):
     email: EmailStr
