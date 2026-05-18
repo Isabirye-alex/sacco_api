@@ -17,7 +17,6 @@ from app.src.models.member import (
     Member,
     NextOfKin,
     User,
-    UserType,
     Roles,
 )
 
@@ -89,7 +88,6 @@ __all__ = [
     "Member",
     "User",
     "NextOfKin",
-    "UserType",
     "Roles",
 
     # savings

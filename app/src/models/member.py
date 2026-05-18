@@ -28,7 +28,6 @@ class Gender(TimestampMixin, Base):
 
     __tablename__ = "genders"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     gender = Column(String(50), nullable=False, unique=True)  # e.g., "MALE", "FEMALE"
     description = Column(Text, nullable=True)
 
@@ -40,27 +39,12 @@ class MemberStatus(TimestampMixin, Base):
 
     __tablename__ = "member_statuses"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     status = Column(
         String(50), nullable=False, unique=True
     )  # e.g., "ACTIVE", "DORMANT"
     description = Column(Text, nullable=True)
 
     members = relationship("Member", back_populates="status")
-
-
-class UserType(TimestampMixin, Base):
-    """Dynamic lookup table for system roles and permissions."""
-
-    __tablename__ = "user_types"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_type = Column(
-        String(50), nullable=False, unique=True
-    )  # e.g., "LOAN_OFFICER", "ADMIN"
-    description = Column(Text, nullable=True)
-
-    users = relationship("User", back_populates="u_type", lazy="joined")
 
 
 class MaritalStatus(TimestampMixin, Base):
@@ -76,11 +60,10 @@ class MaritalStatus(TimestampMixin, Base):
 class Roles(TimestampMixin, Base):
     __tablename__ = "roles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role = Column(String(100), nullable=False, unique=True)
     description = Column(String(250), nullable=True)
 
-    # user = relationship("User", back_populates="role", uselist=False, lazy="joined")
+    user = relationship("User", back_populates="role", uselist=False, lazy="joined")
 
 
 class UserBase:
@@ -95,8 +78,6 @@ class Member(UserBase, TimestampMixin, Base):
     """A registered SACCO member linking to dynamic lookups."""
 
     __tablename__ = "members"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
@@ -156,18 +137,15 @@ class User(UserBase, TimestampMixin, Base):
 
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
     # Foreign Key
-    user_type = Column(UUID(as_uuid=True), ForeignKey("user_types.id"), nullable=False)
+    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id", ondelete='CASCADE'), nullable=False)
     hashed_password = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     last_login = Column(String(50), nullable=True)
 
     # Lookup Relationship
-    u_type = relationship("UserType", back_populates="users", lazy="joined")
-    # role = relationship("Roles", back_populates="user", uselist=True, lazy="joined")
+    role = relationship("Roles", back_populates="user", uselist=True, lazy="joined")
 
     # Core Relationship
     member = relationship("Member", back_populates="user", lazy="raise")
@@ -179,7 +157,6 @@ class NextOfKin(UserBase, TimestampMixin, Base):
     """Emergency contacts and/or loan guarantors / beneficiaries."""
 
     __tablename__ = "next_of_kin"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     member_id = Column(
         UUID(as_uuid=True), ForeignKey("members.id"), nullable=False, index=True
     )

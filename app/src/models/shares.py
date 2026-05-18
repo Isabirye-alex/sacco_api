@@ -1,12 +1,3 @@
-"""
-Shares / Equity
-===============
-ShareProduct     – defines a class of shares (Ordinary, Preference, etc.)
-ShareAccount     – a member's share holding per product
-ShareTransaction – purchases, transfers, redemptions
-Dividend         – declared dividends per product per period
-DividendPayment  – per-member dividend disbursement
-"""
 
 import enum
 from sqlalchemy import (
@@ -24,8 +15,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.src.config.base_file import Base, TimestampMixin
-
-# ─── Enumerations ────────────────────────────────────────────────────────────
 
 
 class ShareProductTypeEnum(str, enum.Enum):
@@ -107,9 +96,11 @@ class ShareAccount(TimestampMixin, Base):
 
     # member = relationship("Member", back_populates="share_accounts")
     product = relationship("ShareProduct", back_populates="accounts")
-    # transactions = relationship(
-    #     "ShareTransaction", back_populates="account", lazy="joined"
-    # )
+    transactions = relationship(
+        "ShareTransaction",
+        back_populates="account",
+        lazy="joined",
+    )
     dividend_payments = relationship(
         "DividendPayment", back_populates="share_account", lazy="dynamic"
     )
@@ -140,15 +131,11 @@ class ShareTransaction(TimestampMixin, Base):
     transaction_date = Column(Date, nullable=False)
 
     # for transfers: counterpart account
-    counterpart_account_id = Column(
-        UUID(as_uuid=True), ForeignKey("share_accounts.id"), nullable=True
-    )
-
     processed_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
-    # account = relationship(
-    #     "ShareAccount", foreign_keys=[account_id], back_populates="transactions"
-    # )
+    account = relationship(
+        "ShareAccount", foreign_keys=[account_id], back_populates="transactions"
+    )
     ledger_entry = relationship("LedgerEntry")
     processed_by = relationship("User")
 
