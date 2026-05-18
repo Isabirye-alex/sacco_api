@@ -1,6 +1,8 @@
 from datetime import date
-from pydantic import BaseModel
 from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
 
 
 class SavingsDepositDTO(BaseModel):
@@ -35,3 +37,96 @@ class SavingsTransactionDTO(BaseModel):
     balance_after: float
     transaction_date: date
     reference: Optional[str]
+
+
+class SavingsProductCreate(BaseModel):
+    organisation_id: UUID
+    name: str
+    code: str
+    product_type: Optional[str] = "ORDINARY"
+    description: Optional[str] = None
+    interest_rate_pa: float = 0.0
+    min_opening_balance: float = 0.0
+    min_balance: float = 0.0
+    max_balance: Optional[float] = None
+    withdrawal_allowed: Optional[bool] = True
+    lock_period_days: Optional[int] = 0
+    is_active: Optional[bool] = True
+
+
+class SavingsProductResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, validate_by_name=True)
+
+    id: UUID
+    organisation_id: UUID
+    name: str
+    code: str
+    product_type: str
+    description: Optional[str] = None
+    interest_rate_pa: float
+    min_opening_balance: float
+    min_balance: float
+    max_balance: Optional[float] = None
+    withdrawal_allowed: bool
+    lock_period_days: int
+    is_active: bool
+
+
+class SavingsAccountCreate(BaseModel):
+    organisation_id: UUID
+    branch_id: UUID
+    member_id: UUID
+    product_id: UUID
+    account_no: str
+    balance: Optional[float] = 0.0
+    status: Optional[str] = "ACTIVE"
+    opened_date: Optional[date] = None
+    closed_date: Optional[date] = None
+    maturity_date: Optional[date] = None
+    notes: Optional[str] = None
+
+
+class SavingsAccountResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, validate_by_name=True)
+
+    id: UUID
+    organisation_id: UUID
+    branch_id: UUID
+    member_id: UUID
+    product_id: UUID
+    account_no: str
+    balance: float
+    status: str
+    opened_date: Optional[date] = None
+    closed_date: Optional[date] = None
+    maturity_date: Optional[date] = None
+    notes: Optional[str] = None
+
+
+class SavingsTransactionCreate(BaseModel):
+    organisation_id: UUID
+    account_id: UUID
+    ledger_entry_id: Optional[UUID] = None
+    tx_type: str
+    amount: float
+    balance_after: float
+    reference: Optional[str] = None
+    description: Optional[str] = None
+    transaction_date: date
+    processed_by_id: Optional[UUID] = None
+
+
+class SavingsTransactionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, validate_by_name=True)
+
+    id: UUID
+    organisation_id: UUID
+    account_id: UUID
+    ledger_entry_id: Optional[UUID] = None
+    tx_type: str
+    amount: float
+    balance_after: float
+    reference: Optional[str] = None
+    description: Optional[str] = None
+    transaction_date: date
+    processed_by_id: Optional[UUID] = None

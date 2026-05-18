@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from uuid import UUID
 
 
-
 class OrganisationCreate(BaseModel):
     name: str
     short_code: str
@@ -44,22 +43,24 @@ class OrganisationResponse(BaseModel):
 
 class BranchCreate(BaseModel):
     organisation_id: UUID
-    branch_name: UUID
+    branch_name: str
     code: str
-    location: str
-    manager_name: str
-    branch_phone: str
-    branch_email: str
-    is_active: str
+    location: Optional[str] = None
+    manager_name: Optional[str] = None
+    branch_phone: Optional[str] = None
+    branch_email: Optional[EmailStr] = None
+    is_active: Optional[bool] = True
 
 
 class BranchResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, validate_by_name=True)
+
     id: UUID
     organisation_id: UUID
-    branch_name: UUID
+    branch_name: str
     code: str
-    location: str
-    manager_name: str
-    branch_phone: str
-    branch_email: str
-    is_active: str
+    location: Optional[str] = None
+    manager_name: Optional[str] = None
+    branch_phone: Optional[str] = None
+    branch_email: Optional[EmailStr] = None
+    is_active: bool
