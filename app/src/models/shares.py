@@ -1,4 +1,3 @@
-
 import enum
 from sqlalchemy import (
     Column,
@@ -94,7 +93,7 @@ class ShareAccount(TimestampMixin, Base):
     )  # shares_held × nominal_value
     is_active = Column(Boolean, default=True, nullable=False)
 
-    # member = relationship("Member", back_populates="share_accounts")
+    member = relationship("Member", back_populates="share_accounts")
     product = relationship("ShareProduct", back_populates="accounts")
     transactions = relationship(
         "ShareTransaction",

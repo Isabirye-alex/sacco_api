@@ -13,11 +13,8 @@ def create_new_user(db: Session, user: UserCreate):
         pwd = hash_password(user.password) if user.password else None
 
         db_user = User(
-            email=user.email,
-            username=user.username,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            password=pwd,
+            role_id=user.role_id,
+            hashed_password=pwd,
         )
 
         db.add(db_user)

@@ -14,7 +14,7 @@ from app.src.models.member import (
     Gender,
     MemberStatus,
     MaritalStatus,
-    Roles,
+    Role,
     NextOfKin,
 )
 from app.src.schemas.member.member_schema import (

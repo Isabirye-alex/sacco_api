@@ -1,4 +1,3 @@
-
 import enum
 from sqlalchemy import (
     Column,
@@ -15,7 +14,6 @@ from sqlalchemy import UUID
 from sqlalchemy.orm import relationship
 
 from app.src.config.base_file import Base, TimestampMixin
-
 
 
 class SavingsProductTypeEnum(str, enum.Enum):
@@ -111,7 +109,7 @@ class SavingsAccount(TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     # relationships
-    # member = relationship("Member", back_populates="savings_accounts")
+    member = relationship("Member", back_populates="savings_accounts")
     product = relationship("SavingsProduct", back_populates="accounts")
     transactions = relationship(
         "SavingsTransaction", back_populates="account", lazy="dynamic"

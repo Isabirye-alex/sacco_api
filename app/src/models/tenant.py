@@ -32,7 +32,7 @@ class Organisation(TimestampMixin, Base):
     logo_url = Column(String(512), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
-    # settings 
+    # settings
     default_currency = Column(String(10), default="UGX", nullable=False)
     min_share_value = Column(Numeric(18, 4), default=1000, nullable=False)
     loan_interest_rate = Column(
@@ -43,7 +43,9 @@ class Organisation(TimestampMixin, Base):
     )  # annual %
 
     # relationships
-    branches = relationship("Branch", back_populates="organisation", lazy="joined", uselist=False)
+    branches = relationship("Branch", back_populates="organisation", lazy="select")
+    members = relationship("Member", back_populates="organisation", lazy="dynamic")
+
 
 class Branch(TimestampMixin, Base):
     """
@@ -66,4 +68,4 @@ class Branch(TimestampMixin, Base):
 
     # relationships
     organisation = relationship("Organisation", back_populates="branches")
-    members = relationship("Member", back_populates="branch", lazy="joined", uselist=False)
+    members = relationship("Member", back_populates="branch", lazy="dynamic")
