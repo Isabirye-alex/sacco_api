@@ -117,7 +117,7 @@ _SAVINGS_TX_TYPES = [
 ]
 
 
-# ─── Seed functions ───────────────────────────────────────────────────────────
+# Seed functions
 
 
 def seed_roles(db: Session) -> None:

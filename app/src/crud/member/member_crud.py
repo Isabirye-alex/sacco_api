@@ -1,6 +1,8 @@
-from sqlalchemy import UUID
-from sqlalchemy.orm import Session
 
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+from app.src.utils.generate_random_member_no import generate_random_member_no
 from app.src.models.member import (
     Member,
     Gender,
@@ -19,9 +21,13 @@ from app.src.schemas.member.member_schema import (
 )
 
 
-def create_member(db: Session, member: MemberCreate):
+def create_member(db: Session, member: MemberCreate) -> Member:
+    # 1. Automatically generate the unique 8-character member number
+    generated_no = generate_random_member_no(db, member.organisation_id)
+    
     db_member = Member(
         organisation_id=member.organisation_id,
+        member_no=generated_no, # Auto-assigned safely
         first_name=member.first_name,
         middle_name=member.middle_name,
         last_name=member.last_name,
@@ -29,10 +35,9 @@ def create_member(db: Session, member: MemberCreate):
         branch_id=member.branch_id,
         gender_id=member.gender_id,
         status_id=member.status_id,
-        member_no=member.member_no,
         date_of_birth=member.date_of_birth,
         national_id=member.national_id,
-        marital_status_id=member.marital_status,
+        marital_status_id=member.marital_status_id, # Matches your model naming
         photo_url=member.photo_url,
         phone_primary=member.phone_primary,
         phone_secondary=member.phone_secondary,
@@ -43,11 +48,34 @@ def create_member(db: Session, member: MemberCreate):
         exit_date=member.exit_date,
         exit_reason=member.exit_reason,
     )
-    db.add(db_member)
-    db.commit()
-    db.refresh(db_member)
-    return db_member
-
+    
+    try:
+        db.add(db_member)
+        db.commit()
+        db.refresh(db_member)
+        return db_member
+        
+    except IntegrityError as e:
+        db.rollback() # Cleans up the failed transaction state
+        error_msg = str(e.orig)
+        
+        # Catch phone duplication
+        if "phone_primary" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A member with this primary phone number already exists."
+            )
+        # Catch invalid Foreign Keys (e.g. branch_id, gender_id, or status_id doesn't exist)
+        elif "foreign key constraint" in error_msg.lower() or "violates foreign key" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs."
+            )
+        # Fallback for any other unique constraints
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Database integrity violation occurred while saving member details."
+        )
 
 def create_gender(db: Session, gender: GenderCreate):
     db_gender = Gender(

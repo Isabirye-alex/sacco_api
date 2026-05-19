@@ -95,10 +95,10 @@ class MemberCreate(BaseModel):
     gender_id: UUID
     status_id: UUID
     user_id: Optional[UUID] = None
-    member_no: str
+    member_no: Optional[str] = None
     date_of_birth: Optional[date] = None
     national_id: Optional[str] = None
-    marital_status: Optional[UUID] = None
+    marital_status_id: Optional[UUID] = None
     photo_url: Optional[str] = None
     phone_primary: Optional[str] = None
     phone_secondary: Optional[str] = None

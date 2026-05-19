@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+import logging
 
 from app.src.config.database import get_db
 from app.src.crud.member.member_crud import (
@@ -35,15 +36,28 @@ from app.src.schemas.member.member_schema import (
 router = APIRouter()
 
 
+# Set up logging instead of using print statements
+logger = logging.getLogger(__name__)
+
+
 @router.post("/", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)
 def create_member_endpoint(member: MemberCreate, db: Session = Depends(get_db)):
     try:
         return create_member(db, member)
+
+    except HTTPException as http_ex:
+        raise http_ex
+
     except Exception as e:
-        print(f'Error occured: {e}')
+        # Log the detailed traceback securely on the backend server
+        logger.error(
+            f"Unexpected system crash during member creation: {e}", exc_info=True
+        )
+
+        # Do not expose raw database errors or tracebacks to the API customer
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal server error occurred: {e}",
+            detail="An unexpected internal system error occurred. Please try again later.",
         )
 
 
