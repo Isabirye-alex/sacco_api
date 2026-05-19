@@ -1,4 +1,3 @@
-import enum
 from sqlalchemy import (
     Column,
     String,
@@ -7,7 +6,6 @@ from sqlalchemy import (
     Boolean,
     Date,
     Integer,
-    Enum as SAEnum,
     ForeignKey,
 )
 from sqlalchemy import UUID
@@ -16,30 +14,46 @@ from sqlalchemy.orm import relationship
 from app.src.config.base_file import Base, TimestampMixin
 
 
-class SavingsProductTypeEnum(str, enum.Enum):
-    ORDINARY = "ORDINARY"  # regular passbook savings
-    FIXED_DEPOSIT = "FIXED_DEPOSIT"  # locked for a term
-    GOAL = "GOAL"  # target / purpose savings
-    EMERGENCY = "EMERGENCY"  # emergency fund
-    CHRISTMAS = "CHRISTMAS"  # seasonal
+class SavingsProductType(TimestampMixin, Base):
+    __tablename__ = "savings_product_types"
+
+    code = Column(String(50), nullable=False, unique=True, index=True)
+    description = Column(Text, nullable=True)
+
+    products = relationship(
+        "SavingsProduct",
+        back_populates="product_type_obj",
+        lazy="dynamic",
+    )
 
 
-class SavingsAccountStatusEnum(str, enum.Enum):
-    ACTIVE = "ACTIVE"
-    DORMANT = "DORMANT"
-    FROZEN = "FROZEN"
-    CLOSED = "CLOSED"
+class SavingsAccountStatus(TimestampMixin, Base):
+    __tablename__ = "savings_account_statuses"
+
+    code = Column(String(50), nullable=False, unique=True, index=True)
+    description = Column(Text, nullable=True)
+
+    accounts = relationship(
+        "SavingsAccount",
+        back_populates="status_obj",
+        lazy="dynamic",
+    )
 
 
-class SavingsTxTypeEnum(str, enum.Enum):
-    DEPOSIT = "DEPOSIT"
-    WITHDRAWAL = "WITHDRAWAL"
-    INTEREST = "INTEREST"
-    CHARGE = "CHARGE"
-    TRANSFER = "TRANSFER"
+class SavingsTxType(TimestampMixin, Base):
+    __tablename__ = "savings_tx_types"
+
+    code = Column(String(50), nullable=False, unique=True, index=True)
+    description = Column(Text, nullable=True)
+
+    transactions = relationship(
+        "SavingsTransaction",
+        back_populates="tx_type_obj",
+        lazy="dynamic",
+    )
 
 
-# ─── Models ──────────────────────────────────────────────────────────────────
+# Models
 
 
 class SavingsProduct(TimestampMixin, Base):
@@ -57,9 +71,15 @@ class SavingsProduct(TimestampMixin, Base):
     name = Column(String(255), nullable=False)
     code = Column(String(20), nullable=False)
     product_type = Column(
-        SAEnum(SavingsProductTypeEnum),
+        String(50),
         nullable=False,
-        default=SavingsProductTypeEnum.ORDINARY,
+        default="ORDINARY",
+    )
+    product_type_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("savings_product_types.id"),
+        nullable=True,
+        index=True,
     )
     description = Column(Text, nullable=True)
 
@@ -76,6 +96,12 @@ class SavingsProduct(TimestampMixin, Base):
     is_active = Column(Boolean, default=True, nullable=False)
 
     accounts = relationship("SavingsAccount", back_populates="product", lazy="dynamic")
+    product_type_obj = relationship(
+        "SavingsProductType",
+        back_populates="products",
+        lazy="joined",
+        uselist=False,
+    )
 
 
 class SavingsAccount(TimestampMixin, Base):
@@ -96,21 +122,33 @@ class SavingsAccount(TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("savings_products.id"), nullable=False
     )
 
-    account_no = Column(String(50), nullable=False)  # human-readable
+    account_no = Column(String(50), nullable=False)
     balance = Column(Numeric(18, 4), default=0, nullable=False)
     status = Column(
-        SAEnum(SavingsAccountStatusEnum),
-        default=SavingsAccountStatusEnum.ACTIVE,
+        String(50),
         nullable=False,
+        default="ACTIVE",
+    )
+    status_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("savings_account_statuses.id"),
+        nullable=True,
+        index=True,
     )
     opened_date = Column(Date, nullable=True)
     closed_date = Column(Date, nullable=True)
-    maturity_date = Column(Date, nullable=True)  # for fixed deposits
+    maturity_date = Column(Date, nullable=True)
     notes = Column(Text, nullable=True)
 
     # relationships
     member = relationship("Member", back_populates="savings_accounts")
     product = relationship("SavingsProduct", back_populates="accounts")
+    status_obj = relationship(
+        "SavingsAccountStatus",
+        back_populates="accounts",
+        lazy="joined",
+        uselist=False,
+    )
     transactions = relationship(
         "SavingsTransaction", back_populates="account", lazy="dynamic"
     )
@@ -137,7 +175,10 @@ class SavingsTransaction(TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("ledger_entries.id"), nullable=True
     )
 
-    tx_type = Column(SAEnum(SavingsTxTypeEnum), nullable=False)
+    tx_type = Column(String(50), nullable=False)
+    tx_type_id = Column(
+        UUID(as_uuid=True), ForeignKey("savings_tx_types.id"), nullable=True, index=True
+    )
     amount = Column(Numeric(18, 4), nullable=False)
     balance_after = Column(Numeric(18, 4), nullable=False)  # snapshot for quick reads
     reference = Column(String(100), nullable=True)  # e.g. mobile money ref
@@ -146,5 +187,11 @@ class SavingsTransaction(TimestampMixin, Base):
     processed_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
     account = relationship("SavingsAccount", back_populates="transactions")
+    tx_type_obj = relationship(
+        "SavingsTxType",
+        back_populates="transactions",
+        lazy="joined",
+        uselist=False,
+    )
     ledger_entry = relationship("LedgerEntry")
     processed_by = relationship("User")

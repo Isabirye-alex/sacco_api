@@ -58,15 +58,14 @@ class RoleResponse(BaseModel):
 class NextOfKinCreate(BaseModel):
     member_id: UUID
     first_name: str
-    middle_name: Optional[str] = None
     last_name: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    member_relationship: Optional[str] = None
+    relationship_to_member: Optional[str] = None
     national_id: Optional[str] = None
     is_primary: Optional[bool] = False
-    marital_status: UUID
+    marital_status_id: UUID
 
 
 class NextOfKinResponse(BaseModel):
@@ -80,10 +79,10 @@ class NextOfKinResponse(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    member_relationship: Optional[str] = None
+    relationship_to_member: Optional[str] = None
     national_id: Optional[str] = None
     is_primary: bool
-    marital_status: UUID
+    marital_status_id: UUID
 
 
 class MemberCreate(BaseModel):

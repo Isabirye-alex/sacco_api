@@ -1,14 +1,13 @@
 """
 Loans & Repayments
-==================
-LoanProduct         – configurable loan product (Emergency, Business, School fees…)
-LoanApplication     – application before disbursement
-Loan                – active / completed loan
-LoanGuarantor       – who is guaranteeing the loan
-LoanCollateral      – physical assets pledged
-LoanRepaymentSchedule – generated amortisation / flat-rate schedule
-LoanRepayment       – actual payment received
-LoanPenalty         – late/missed payment charges
+LoanProduct          configurable loan product (Emergency, Business, School fees…)
+LoanApplication      application before disbursement
+Loan                 active / completed loan
+LoanGuarantor        who is guaranteeing the loan
+LoanCollateral       physical assets pledged
+LoanRepaymentSchedule  generated amortisation / flat-rate schedule
+LoanRepayment        actual payment received
+LoanPenalty          late/missed payment charges
 """
 
 import enum
@@ -22,7 +21,7 @@ from sqlalchemy.orm import relationship
 from app.src.config.base_file import Base, TimestampMixin
 
 
-# ─── Enumerations ────────────────────────────────────────────────────────────
+# Enumerations
 
 class RepaymentFrequencyEnum(str, enum.Enum):
     DAILY      = "DAILY"

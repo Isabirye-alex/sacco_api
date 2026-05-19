@@ -26,9 +26,9 @@ from app.src.models.savings import (
     SavingsProduct,
     SavingsAccount,
     SavingsTransaction,
-    SavingsProductTypeEnum,
-    SavingsAccountStatusEnum,
-    SavingsTxTypeEnum,
+    SavingsProductType,
+    SavingsAccountStatus,
+    SavingsTxType,
 )
 
 # ── Shares / Equity ───────────────────────────────────────────────────────-
@@ -95,9 +95,9 @@ __all__ = [
     "SavingsProduct",
     "SavingsAccount",
     "SavingsTransaction",
-    "SavingsProductTypeEnum",
-    "SavingsAccountStatusEnum",
-    "SavingsTxTypeEnum",
+    "SavingsProductType",
+    "SavingsAccountStatus",
+    "SavingsTxType",
     # shares
     "ShareProduct",
     "ShareAccount",

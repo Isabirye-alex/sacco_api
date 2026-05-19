@@ -1,12 +1,3 @@
-"""
-Transactions & Ledger (Double-Entry Accounting)
-================================================
-ChartOfAccount    – the SACCO's chart of accounts
-LedgerEntry       – a balanced journal entry (header)
-LedgerLine        – individual debit / credit lines (must balance per entry)
-JournalEntry      – manual/corrective journal entries
-"""
-
 import enum
 from sqlalchemy import (
     Column,
@@ -24,8 +15,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.src.config.base_file import Base, TimestampMixin
-
-# ─── Enumerations ────────────────────────────────────────────────────────────
 
 
 class AccountTypeEnum(str, enum.Enum):
@@ -71,7 +60,7 @@ class LedgerEntryTypeEnum(str, enum.Enum):
     LOAN_REPAYMENT = "LOAN_REPAYMENT"
     LOAN_PENALTY = "LOAN_PENALTY"
     FEE_CHARGE = "FEE_CHARGE"
-    JOURNAL = "JOURNAL"  # manual / corrective
+    JOURNAL = "JOURNAL"
     TRANSFER = "TRANSFER"
 
 
@@ -85,9 +74,6 @@ class LedgerEntryStatusEnum(str, enum.Enum):
     POSTED = "POSTED"
     REVERSED = "REVERSED"
     VOIDED = "VOIDED"
-
-
-# ─── Models ──────────────────────────────────────────────────────────────────
 
 
 class ChartOfAccount(TimestampMixin, Base):

@@ -122,7 +122,7 @@ def create_role_endpoint(role: RoleCreate, db: Session = Depends(get_db)):
 
 @router.get("/roles", response_model=list[RoleResponse])
 def list_roles(db: Session = Depends(get_db)):
-    return db.query(Roles).all()
+    return db.query(Role).all()
 
 
 @router.post(

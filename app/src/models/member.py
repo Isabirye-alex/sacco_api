@@ -1,37 +1,3 @@
-"""
-Members & Auth
-==============
-
-Models
-------
-Gender          – admin-managed lookup (replaces GenderEnum)
-MemberStatus    – admin-managed lookup (replaces MemberStatusEnum)
-MaritalStatus   – admin-managed lookup
-Role            – seeded system roles; admin can add custom ones
-User            – login credentials; one User per Member or standalone for staff
-Member          – registered SACCO member
-NextOfKin       – emergency contacts / beneficiaries
-
-User differentiation strategy
-------------------------------
-Two-layer system:
-  1. user_type  (MEMBER | STAFF)  — structural, set at creation, never changes.
-                                    Fast check: "can this user access staff routes?"
-  2. role_id → Role               — fine-grained permission within each type.
-                                    "What can this staff member specifically do?"
-
-Member users  → user_type=MEMBER, role.role="MEMBER"
-Staff users   → user_type=STAFF,  role.role in (LOAN_OFFICER, TREASURER, …)
-
-This means:
-  - A Member user can NEVER escalate to a staff route even if their role changes.
-  - Staff routes check user_type first (fast), then role (fine-grained).
-  - member_id is NULL for all staff users — they have no Member record.
-
-Seeded roles (see seeds/roles.py)
-----------------------------------
-  MEMBER, LOAN_OFFICER, TREASURER, BRANCH_MANAGER, ADMIN, SUPER_ADMIN
-"""
 
 import enum
 
@@ -51,7 +17,6 @@ from sqlalchemy.orm import relationship
 
 from app.src.config.base_file import Base, TimestampMixin
 
-# ─── Enumerations (only truly fixed, code-driven values stay as enums) ────────
 
 
 class UserTypeEnum(str, enum.Enum):
@@ -63,8 +28,6 @@ class UserTypeEnum(str, enum.Enum):
     MEMBER = "MEMBER"  # has a Member record; sees member portal
     STAFF = "STAFF"  # no Member record; sees staff dashboard
 
-
-# ─── Lookup Tables (admin-managed) ───────────────────────────────────────────
 
 
 class Gender(TimestampMixin, Base):
@@ -120,12 +83,12 @@ class Role(TimestampMixin, Base):
 
     System roles
     ------------
-    MEMBER          – regular member portal access
-    LOAN_OFFICER    – can review and process loan applications
-    TREASURER       – full access to savings, shares, ledger
-    BRANCH_MANAGER  – manages one branch; all operations within it
-    ADMIN           – organisation-wide admin
-    SUPER_ADMIN     – platform-level; can manage multiple organisations
+    MEMBER           regular member portal access
+    LOAN_OFFICER     can review and process loan applications
+    TREASURER        full access to savings, shares, ledger
+    BRANCH_MANAGER   manages one branch; all operations within it
+    ADMIN            organisation-wide admin
+    SUPER_ADMIN      platform-level; can manage multiple organisations
     """
 
     __tablename__ = "roles"
@@ -138,7 +101,6 @@ class Role(TimestampMixin, Base):
     users = relationship("User", back_populates="role", lazy="dynamic")
 
 
-# ─── Core Models ──────────────────────────────────────────────────────────────
 
 
 class User(TimestampMixin, Base):

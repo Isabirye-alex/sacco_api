@@ -82,7 +82,7 @@ def create_marital_status(db: Session, status: MaritalStatusCreate):
 
 
 def create_role(db: Session, role: RoleCreate):
-    db_role = Roles(
+    db_role = Role(
         role=role.role,
         description=role.description,
     )
@@ -96,15 +96,14 @@ def create_next_of_kin(db: Session, kin: NextOfKinCreate):
     db_kin = NextOfKin(
         member_id=kin.member_id,
         first_name=kin.first_name,
-        middle_name=kin.middle_name,
         last_name=kin.last_name,
         email=kin.email,
         phone=kin.phone,
         address=kin.address,
-        member_relationship=kin.member_relationship,
+        relationship_to_member=kin.relationship_to_member,
         national_id=kin.national_id,
         is_primary=kin.is_primary,
-        marital_status=kin.marital_status,
+        marital_status_id=kin.marital_status_id,
     )
     db.add(db_kin)
     db.commit()
