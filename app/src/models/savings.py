@@ -52,9 +52,7 @@ class SavingsTxType(TimestampMixin, Base):
         lazy="dynamic",
     )
 
-
 # Models
-
 
 class SavingsProduct(TimestampMixin, Base):
     """
@@ -65,9 +63,6 @@ class SavingsProduct(TimestampMixin, Base):
 
     __tablename__ = "savings_products"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     name = Column(String(255), nullable=False)
     code = Column(String(20), nullable=False)
     product_type = Column(
@@ -109,9 +104,7 @@ class SavingsAccount(TimestampMixin, Base):
 
     __tablename__ = "savings_accounts"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
+    
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
@@ -162,9 +155,7 @@ class SavingsTransaction(TimestampMixin, Base):
 
     __tablename__ = "savings_transactions"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
+    
     account_id = Column(
         UUID(as_uuid=True),
         ForeignKey("savings_accounts.id"),

@@ -40,7 +40,6 @@ class SavingsTransactionDTO(BaseModel):
 
 
 class SavingsProductCreate(BaseModel):
-    organisation_id: UUID
     name: str
     code: str
     product_type: Optional[str] = "ORDINARY"
@@ -58,7 +57,6 @@ class SavingsProductResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
     name: str
     code: str
     product_type: str
@@ -73,7 +71,6 @@ class SavingsProductResponse(BaseModel):
 
 
 class SavingsAccountCreate(BaseModel):
-    organisation_id: UUID
     branch_id: UUID
     member_id: UUID
     product_id: UUID
@@ -90,7 +87,6 @@ class SavingsAccountResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
     branch_id: UUID
     member_id: UUID
     product_id: UUID
@@ -104,7 +100,6 @@ class SavingsAccountResponse(BaseModel):
 
 
 class SavingsTransactionCreate(BaseModel):
-    organisation_id: UUID
     account_id: UUID
     ledger_entry_id: Optional[UUID] = None
     tx_type: str
@@ -120,7 +115,6 @@ class SavingsTransactionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
     account_id: UUID
     ledger_entry_id: Optional[UUID] = None
     tx_type: str
