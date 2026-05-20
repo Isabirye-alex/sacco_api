@@ -117,11 +117,7 @@ class SavingsAccount(TimestampMixin, Base):
 
     account_no = Column(String(50), nullable=False)
     balance = Column(Numeric(18, 4), default=0, nullable=False)
-    status = Column(
-        String(50),
-        nullable=False,
-        default="ACTIVE",
-    )
+
     status_id = Column(
         UUID(as_uuid=True),
         ForeignKey("savings_account_statuses.id"),

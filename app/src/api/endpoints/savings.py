@@ -51,6 +51,16 @@ def create_savings_account_endpoint(
     account: SavingsAccountCreate, db: Session = Depends(get_db)
 ):
     try:
+        # existing_account = db.query(SavingsAccount).filter(
+        #     SavingsAccount.member_id == account.member_id,
+        #     SavingsAccount.product_id == account.product_id,
+        # ).first()
+        # if existing_account:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_409_CONFLICT,
+        #         detail=f"Account already exists for user {account.member_id}",
+        #     )
+
         return create_savings_account(db, account)
     except Exception as e:
         raise HTTPException(

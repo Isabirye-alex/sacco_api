@@ -37,7 +37,7 @@ class DividendStatusEnum(str, enum.Enum):
     REVERSED = "REVERSED"
 
 
-# ─── Models ──────────────────────────────────────────────────────────────────
+# Models
 
 
 class ShareProduct(TimestampMixin, Base):

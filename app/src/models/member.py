@@ -223,12 +223,12 @@ class Member(TimestampMixin, Base):
     )
 
     # identity
-    member_no = Column(String(50), nullable=False)
+    member_no = Column(String(50), nullable=False, index=True, unique=True)
     first_name = Column(String(100), nullable=False)
     middle_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=False)
     date_of_birth = Column(Date, nullable=True)
-    national_id = Column(String(50), nullable=True)  # NIN / passport
+    national_id = Column(String(50), nullable=False)  
     photo_url = Column(String(512), nullable=True)
 
     # contact
@@ -259,8 +259,6 @@ class Member(TimestampMixin, Base):
     marital_status = relationship(
         "MaritalStatus", back_populates="members", lazy="joined", uselist=False
     )
-
-    # FK lives on User.member_id — so uselist=False, no FK column here
     user = relationship("User", back_populates="member", lazy="raise", uselist=False)
     next_of_kin = relationship("NextOfKin", back_populates="member", lazy="dynamic")
 
@@ -275,8 +273,6 @@ class Member(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("organisation_id", "member_no", name="uq_member_no_per_org"),
     )
-
-
 
 class NextOfKin(TimestampMixin, Base):
     """Emergency contacts and / or beneficiaries attached to a Member."""

@@ -18,7 +18,7 @@ from app.src.schemas.savings import (
     SavingsAccountCreate,
     SavingsTransactionCreate,
 )
-
+from app.src.utils.generate_random_account_number import generate_unique_account_no
 
 def _resolve_savings_product_type_id(db: Session, code: str):
     valid_codes = {item["code"] for item in _SAVINGS_PRODUCT_TYPES}
@@ -63,7 +63,6 @@ def create_savings_product(db: Session, product: SavingsProductCreate):
     product_type_id = _resolve_savings_product_type_id(
         db, product.product_type or _SAVINGS_PRODUCT_TYPES[0]["code"]
     )
-
     db_product = SavingsProduct(
         organisation_id=product.organisation_id,
         name=product.name,
@@ -86,19 +85,16 @@ def create_savings_product(db: Session, product: SavingsProductCreate):
 
 
 def create_savings_account(db: Session, account: SavingsAccountCreate):
-    status_id = _resolve_savings_account_status_id(
-        db, account.status or _SAVINGS_ACCOUNT_STATUSES[0]["code"]
-    )
+    
+    account_number = generate_unique_account_no(db)
 
     db_account = SavingsAccount(
-        organisation_id=account.organisation_id,
         branch_id=account.branch_id,
         member_id=account.member_id,
         product_id=account.product_id,
-        account_no=account.account_no,
+        account_no=account_number,
         balance=account.balance,
-        status=account.status,
-        status_id=status_id,
+        status_id=account.status_id,
         opened_date=account.opened_date,
         closed_date=account.closed_date,
         maturity_date=account.maturity_date,

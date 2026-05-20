@@ -72,11 +72,11 @@ class SavingsProductResponse(BaseModel):
 
 class SavingsAccountCreate(BaseModel):
     branch_id: UUID
-    member_id: UUID
     product_id: UUID
-    account_no: str
+    account_no: Optional[str] = None
+    member_id: UUID
     balance: Optional[float] = 0.0
-    status: Optional[str] = "ACTIVE"
+    status_id: UUID
     opened_date: Optional[date] = None
     closed_date: Optional[date] = None
     maturity_date: Optional[date] = None
@@ -88,11 +88,11 @@ class SavingsAccountResponse(BaseModel):
 
     id: UUID
     branch_id: UUID
-    member_id: UUID
     product_id: UUID
     account_no: str
+    member_id: UUID
+    status_id: UUID
     balance: float
-    status: str
     opened_date: Optional[date] = None
     closed_date: Optional[date] = None
     maturity_date: Optional[date] = None
