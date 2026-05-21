@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class LoanProductCreate(BaseModel):
-    organisation_id: UUID
+
     name: str
     code: str
     description: Optional[str] = None
@@ -31,7 +31,7 @@ class LoanProductResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     name: str
     code: str
     description: Optional[str] = None
@@ -53,17 +53,17 @@ class LoanProductResponse(BaseModel):
 
 
 class LoanApplicationCreate(BaseModel):
-    organisation_id: UUID
+
     branch_id: UUID
     member_id: UUID
     product_id: UUID
-    application_no: str
+    application_no: Optional[str] = None
     applied_amount: float
     approved_amount: Optional[float] = None
     term_months: int
     purpose: Optional[str] = None
     status: Optional[str] = "DRAFT"
-    applied_date: date
+    applied_date: Optional[date] = None
     reviewed_date: Optional[date] = None
     decision_date: Optional[date] = None
     reviewed_by_id: Optional[UUID] = None
@@ -76,7 +76,7 @@ class LoanApplicationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     branch_id: UUID
     member_id: UUID
     product_id: UUID
@@ -96,12 +96,12 @@ class LoanApplicationResponse(BaseModel):
 
 
 class LoanCreate(BaseModel):
-    organisation_id: UUID
+
     branch_id: UUID
     member_id: UUID
     product_id: UUID
     application_id: UUID
-    loan_no: str
+    loan_no: Optional[str] = None
     principal: float
     interest_rate_pa: float
     term_months: int
@@ -128,7 +128,7 @@ class LoanResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     branch_id: UUID
     member_id: UUID
     product_id: UUID
@@ -157,7 +157,7 @@ class LoanResponse(BaseModel):
 
 
 class LoanGuarantorCreate(BaseModel):
-    organisation_id: UUID
+
     application_id: UUID
     guarantor_id: UUID
     guaranteed_amount: Optional[float] = None
@@ -170,7 +170,7 @@ class LoanGuarantorResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     application_id: UUID
     guarantor_id: UUID
     guaranteed_amount: Optional[float] = None
@@ -180,7 +180,7 @@ class LoanGuarantorResponse(BaseModel):
 
 
 class LoanCollateralCreate(BaseModel):
-    organisation_id: UUID
+
     application_id: UUID
     collateral_type: str
     description: str
@@ -193,7 +193,7 @@ class LoanCollateralResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     application_id: UUID
     collateral_type: str
     description: str
@@ -203,7 +203,7 @@ class LoanCollateralResponse(BaseModel):
 
 
 class LoanRepaymentScheduleCreate(BaseModel):
-    organisation_id: UUID
+
     loan_id: UUID
     instalment_no: int
     due_date: date
@@ -221,7 +221,7 @@ class LoanRepaymentScheduleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     loan_id: UUID
     instalment_no: int
     due_date: date
@@ -236,7 +236,7 @@ class LoanRepaymentScheduleResponse(BaseModel):
 
 
 class LoanRepaymentCreate(BaseModel):
-    organisation_id: UUID
+
     loan_id: UUID
     ledger_entry_id: Optional[UUID] = None
     amount: float
@@ -254,7 +254,7 @@ class LoanRepaymentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     loan_id: UUID
     ledger_entry_id: Optional[UUID] = None
     amount: float
@@ -269,7 +269,7 @@ class LoanRepaymentResponse(BaseModel):
 
 
 class LoanPenaltyCreate(BaseModel):
-    organisation_id: UUID
+
     loan_id: UUID
     penalty_type: str
     days_overdue: Optional[int] = 0
@@ -285,7 +285,7 @@ class LoanPenaltyResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
+
     loan_id: UUID
     penalty_type: str
     days_overdue: int

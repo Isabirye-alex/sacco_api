@@ -4,7 +4,6 @@ from app.src.utils.generate_random_account_number import generate_unique_account
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.src.utils.generate_random_member_no import generate_random_member_no
 from app.src.models.member import (
     Member,
     Gender,
@@ -26,6 +25,7 @@ from app.src.schemas.member.member_schema import (
     RoleCreate,
     NextOfKinCreate,
 )
+from app.src.utils.generate_random_member_no import get_next_sequential_number
 
 
 def _resolve_savings_account_status_id(db: Session, code: str = "ACTIVE"):
@@ -74,65 +74,84 @@ def _create_member_savings_account(db: Session, member: Member):
 
 
 def create_member(db: Session, member: MemberCreate) -> Member:
-    generated_no = generate_random_member_no(db, member.organisation_id)
+    max_retries = 10
+    attempts = 0
 
-    db_member = Member(
-        organisation_id=member.organisation_id,
-        member_no=generated_no,
-        first_name=member.first_name,
-        middle_name=member.middle_name,
-        last_name=member.last_name,
-        email=member.email,
-        branch_id=member.branch_id,
-        gender_id=member.gender_id,
-        status_id=member.status_id,
-        date_of_birth=member.date_of_birth,
-        national_id=member.national_id,
-        marital_status_id=member.marital_status_id,
-        photo_url=member.photo_url,
-        phone_primary=member.phone_primary,
-        phone_secondary=member.phone_secondary,
-        country=member.country,
-        village=member.village,
-        district=member.district,
-        joined_date=member.joined_date or date.today(),
-        exit_date=member.exit_date,
-        exit_reason=member.exit_reason,
-    )
+    while attempts < max_retries:
+        # 1. Generate the next sequential number based on the database's current state
+        generated_no = get_next_sequential_number(db, member.organisation_id)
 
-    try:
-        # Wrap all execution statements that could cause constraint errors inside the savepoint context
-        with db.begin_nested():
-            db.add(db_member)
-            db.flush()  # Populates db_member.id so the savings account foreign key works
-            _create_member_savings_account(db, db_member)
-        
-        # Safe to refresh outside the savepoint context block
-        db.refresh(db_member)
-        db.commit()
-        return db_member
-
-    except IntegrityError as e:
-        error_msg = str(e.orig)
-
-        if "phone_primary" in error_msg:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="A member with this primary phone number already exists.",
-            )
-        elif (
-            "foreign key constraint" in error_msg.lower()
-            or "violates foreign key" in error_msg.lower()
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs.",
-            )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Database integrity violation occurred while saving member details.",
+        db_member = Member(
+            organisation_id=member.organisation_id,
+            member_no=generated_no,
+            first_name=member.first_name,
+            middle_name=member.middle_name,
+            last_name=member.last_name,
+            email=member.email,
+            branch_id=member.branch_id,
+            gender_id=member.gender_id,
+            status_id=member.status_id,
+            date_of_birth=member.date_of_birth,
+            national_id=member.national_id,
+            marital_status_id=member.marital_status_id,
+            photo_url=member.photo_url,
+            phone_primary=member.phone_primary,
+            phone_secondary=member.phone_secondary,
+            country=member.country,
+            village=member.village,
+            district=member.district,
+            joined_date=member.joined_date or date.today(),
+            exit_date=member.exit_date,
+            exit_reason=member.exit_reason,
         )
 
+        try:
+            # Wrap execution inside a nested savepoint transaction block
+            with db.begin_nested():
+                db.add(db_member)
+                db.flush()  # Populates db_member.id so savings account FK works
+                _create_member_savings_account(db, db_member)
+
+            # If everything inside the savepoint succeeded, commit it globally
+            db.commit()
+            db.refresh(db_member)
+            return db_member
+
+        except IntegrityError as e:
+            # The savepoint block automatically rolled back the failed insert state
+            error_msg = str(e.orig).lower()
+
+            # CASE A: Check if the collision was specifically due to the member number
+            # Update 'uq_organisation_member_no' to match your actual database constraint name
+            if "uq_organisation_member_no" in error_msg or "member_no" in error_msg:
+                attempts += 1
+                continue  # Loop back, get a fresh number, and try again seamlessly!
+
+            # CASE B: It's an integrity violation unrelated to member_no (no point in retrying)
+            if "phone_primary" in error_msg:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="A member with this primary phone number already exists.",
+                )
+            elif (
+                "foreign key constraint" in error_msg
+                or "violates foreign key" in error_msg
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs.",
+                )
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Database integrity violation occurred while saving member details.",
+            )
+
+    # Safety valve trigger
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to allocate a unique member number due to excessive concurrent registration traffic.",
+    )
 
 
 def create_gender(db: Session, gender: GenderCreate):

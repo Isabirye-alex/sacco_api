@@ -130,9 +130,7 @@ class LoanProduct(TimestampMixin, Base):
 
     __tablename__ = "loan_products"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
+    
     name = Column(String(255), nullable=False)
     code = Column(String(20), nullable=False, unique=True)
     description = Column(Text, nullable=True)
@@ -173,7 +171,7 @@ class LoanProduct(TimestampMixin, Base):
     loan_to_shares_ratio = Column(Numeric(5, 2), nullable=True)  # e.g. 2× shares
     requires_guarantor = Column(Boolean, default=True, nullable=False)
     min_guarantors = Column(Integer, default=1, nullable=False)
-    requires_collateral = Column(Boolean, default=False, nullable=False)
+    requires_collateral = Column(Boolean, default=True, nullable=False)
     penalty_rate_per_day = Column(
         Numeric(5, 4), default=0.001, nullable=False
     )  # % of outstanding
@@ -192,9 +190,6 @@ class LoanApplication(TimestampMixin, Base):
 
     __tablename__ = "loan_applications"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
@@ -247,9 +242,6 @@ class Loan(TimestampMixin, Base):
 
     __tablename__ = "loans"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
@@ -348,9 +340,6 @@ class LoanGuarantor(TimestampMixin, Base):
 
     __tablename__ = "loan_guarantors"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     application_id = Column(
         UUID(as_uuid=True),
         ForeignKey("loan_applications.id"),
@@ -375,9 +364,6 @@ class LoanCollateral(TimestampMixin, Base):
 
     __tablename__ = "loan_collaterals"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     application_id = Column(
         UUID(as_uuid=True),
         ForeignKey("loan_applications.id"),
@@ -413,9 +399,6 @@ class LoanRepaymentSchedule(TimestampMixin, Base):
 
     __tablename__ = "loan_repayment_schedules"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     loan_id = Column(
         UUID(as_uuid=True), ForeignKey("loans.id"), nullable=False, index=True
     )
@@ -439,9 +422,6 @@ class LoanRepayment(TimestampMixin, Base):
 
     __tablename__ = "loan_repayments"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     loan_id = Column(
         UUID(as_uuid=True), ForeignKey("loans.id"), nullable=False, index=True
     )
@@ -470,9 +450,6 @@ class LoanPenalty(TimestampMixin, Base):
 
     __tablename__ = "loan_penalties"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     loan_id = Column(
         UUID(as_uuid=True), ForeignKey("loans.id"), nullable=False, index=True
     )

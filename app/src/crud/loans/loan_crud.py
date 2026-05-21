@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy.orm import Session
 from app.src.utils.generate_unique_application_no import generate_unique_application_number
 from app.src.models.loans import (
@@ -25,7 +27,6 @@ from app.src.utils import generate_unique_application_no
 
 def create_loan_product(db: Session, product: LoanProductCreate):
     db_product = LoanProduct(
-        organisation_id=product.organisation_id,
         name=product.name,
         code=product.code,
         description=product.description,
@@ -52,9 +53,8 @@ def create_loan_product(db: Session, product: LoanProductCreate):
 
 
 def create_loan_application(db: Session, application: LoanApplicationCreate):
-    application_no = generate_unique_application_number(db, application.organisation_id)
+    application_no = generate_unique_application_number()
     db_application = LoanApplication(
-        organisation_id=application.organisation_id,
         branch_id=application.branch_id,
         member_id=application.member_id,
         product_id=application.product_id,
@@ -64,7 +64,7 @@ def create_loan_application(db: Session, application: LoanApplicationCreate):
         term_months=application.term_months,
         purpose=application.purpose,
         status=application.status,
-        applied_date=application.applied_date,
+        applied_date=application.applied_date or date.today(),
         reviewed_date=application.reviewed_date,
         decision_date=application.decision_date,
         reviewed_by_id=application.reviewed_by_id,
@@ -80,7 +80,6 @@ def create_loan_application(db: Session, application: LoanApplicationCreate):
 
 def create_loan(db: Session, loan: LoanCreate):
     db_loan = Loan(
-        organisation_id=loan.organisation_id,
         branch_id=loan.branch_id,
         member_id=loan.member_id,
         product_id=loan.product_id,
@@ -115,7 +114,6 @@ def create_loan(db: Session, loan: LoanCreate):
 
 def create_loan_guarantor(db: Session, guarantor: LoanGuarantorCreate):
     db_guarantor = LoanGuarantor(
-        organisation_id=guarantor.organisation_id,
         application_id=guarantor.application_id,
         guarantor_id=guarantor.guarantor_id,
         guaranteed_amount=guarantor.guaranteed_amount,
@@ -131,7 +129,6 @@ def create_loan_guarantor(db: Session, guarantor: LoanGuarantorCreate):
 
 def create_loan_collateral(db: Session, collateral: LoanCollateralCreate):
     db_collateral = LoanCollateral(
-        organisation_id=collateral.organisation_id,
         application_id=collateral.application_id,
         collateral_type=collateral.collateral_type,
         description=collateral.description,
@@ -147,7 +144,6 @@ def create_loan_collateral(db: Session, collateral: LoanCollateralCreate):
 
 def create_loan_repayment_schedule(db: Session, schedule: LoanRepaymentScheduleCreate):
     db_schedule = LoanRepaymentSchedule(
-        organisation_id=schedule.organisation_id,
         loan_id=schedule.loan_id,
         instalment_no=schedule.instalment_no,
         due_date=schedule.due_date,
@@ -168,7 +164,6 @@ def create_loan_repayment_schedule(db: Session, schedule: LoanRepaymentScheduleC
 
 def create_loan_repayment(db: Session, repayment: LoanRepaymentCreate):
     db_repayment = LoanRepayment(
-        organisation_id=repayment.organisation_id,
         loan_id=repayment.loan_id,
         ledger_entry_id=repayment.ledger_entry_id,
         amount=repayment.amount,
@@ -189,7 +184,6 @@ def create_loan_repayment(db: Session, repayment: LoanRepaymentCreate):
 
 def create_loan_penalty(db: Session, penalty: LoanPenaltyCreate):
     db_penalty = LoanPenalty(
-        organisation_id=penalty.organisation_id,
         loan_id=penalty.loan_id,
         penalty_type=penalty.penalty_type,
         days_overdue=penalty.days_overdue,
