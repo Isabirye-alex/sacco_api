@@ -1,6 +1,3 @@
-
-import enum
-
 from sqlalchemy import (
     Column,
     String,
@@ -8,26 +5,30 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
-    Enum as SAEnum,
     ForeignKey,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.src.config.base_file import Base, TimestampMixin
+from app.src.models.base_file import Base, TimestampMixin
+
+USER_TYPE_MEMBER = "MEMBER"
+USER_TYPE_STAFF = "STAFF"
 
 
+class UserType(TimestampMixin, Base):
+    __tablename__ = "user_types"
 
-class UserTypeEnum(str, enum.Enum):
-    """
-    Structural split between member portal users and SACCO staff.
-    Set once at account creation — never updated.
-    """
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
 
-    MEMBER = "MEMBER"  # has a Member record; sees member portal
-    STAFF = "STAFF"  # no Member record; sees staff dashboard
-
+    users = relationship(
+        "User",
+        back_populates="user_type_obj",
+        lazy="dynamic",
+        foreign_keys="User.user_type",
+    )
 
 
 class Gender(TimestampMixin, Base):
@@ -101,8 +102,6 @@ class Role(TimestampMixin, Base):
     users = relationship("User", back_populates="role", lazy="dynamic")
 
 
-
-
 class User(TimestampMixin, Base):
     """
     Login account for both members and staff.
@@ -113,7 +112,7 @@ class User(TimestampMixin, Base):
     user_type = STAFF  → member_id is NULL; role drives permissions
 
     Always check user_type before role:
-        if user.user_type == UserTypeEnum.STAFF and user.role.role == "TREASURER":
+        if user.user_type == USER_TYPE_STAFF and user.role.role == "TREASURER":
             ...
     """
 
@@ -128,7 +127,17 @@ class User(TimestampMixin, Base):
 
     # structural split — set once at creation, never changed
     user_type = Column(
-        SAEnum(UserTypeEnum), nullable=False, default=UserTypeEnum.MEMBER
+        String(50),
+        ForeignKey("user_types.code"),
+        nullable=False,
+        default=USER_TYPE_MEMBER,
+    )
+    user_type_obj = relationship(
+        "UserType",
+        back_populates="users",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[user_type],
     )
 
     # NULL for STAFF users; populated and unique for MEMBER users
@@ -160,16 +169,16 @@ class User(TimestampMixin, Base):
         UniqueConstraint("organisation_id", "email", name="uq_user_email_per_org"),
     )
 
-    # convenience helpers (used in FastAPI dependencies) 
+    # convenience helpers (used in FastAPI dependencies)
     @property
     def is_member_user(self) -> bool:
         """True when this account belongs to a regular SACCO member."""
-        return self.user_type == UserTypeEnum.MEMBER
+        return self.user_type == USER_TYPE_MEMBER
 
     @property
     def is_staff_user(self) -> bool:
         """True when this account belongs to SACCO staff."""
-        return self.user_type == UserTypeEnum.STAFF
+        return self.user_type == USER_TYPE_STAFF
 
     def has_role(self, *roles: str) -> bool:
         """
@@ -228,7 +237,7 @@ class Member(TimestampMixin, Base):
     middle_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=False)
     date_of_birth = Column(Date, nullable=True)
-    national_id = Column(String(50), nullable=False)  
+    national_id = Column(String(50), nullable=False)
     photo_url = Column(String(512), nullable=True)
 
     # contact
@@ -245,7 +254,7 @@ class Member(TimestampMixin, Base):
     exit_date = Column(Date, nullable=True)
     exit_reason = Column(Text, nullable=True)
 
-    #relationships
+    # relationships
     organisation = relationship("Organisation", back_populates="members", lazy="select")
     branch = relationship(
         "Branch", back_populates="members", lazy="joined", uselist=False
@@ -273,6 +282,7 @@ class Member(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("organisation_id", "member_no", name="uq_member_no_per_org"),
     )
+
 
 class NextOfKin(TimestampMixin, Base):
     """Emergency contacts and / or beneficiaries attached to a Member."""

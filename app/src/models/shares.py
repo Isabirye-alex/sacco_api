@@ -1,4 +1,3 @@
-import enum
 from sqlalchemy import (
     Column,
     String,
@@ -7,34 +6,54 @@ from sqlalchemy import (
     Boolean,
     Date,
     Integer,
-    Enum as SAEnum,
     ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.src.config.base_file import Base, TimestampMixin
+from app.src.models.base_file import Base, TimestampMixin
 
 
-class ShareProductTypeEnum(str, enum.Enum):
-    ORDINARY = "ORDINARY"
-    PREFERENCE = "PREFERENCE"
-    BONUS = "BONUS"
+class ShareProductType(TimestampMixin, Base):
+    __tablename__ = "share_product_types"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    products = relationship(
+        "ShareProduct",
+        back_populates="product_type_obj",
+        lazy="dynamic",
+        foreign_keys="ShareProduct.product_type",
+    )
 
 
-class ShareTxTypeEnum(str, enum.Enum):
-    PURCHASE = "PURCHASE"
-    TRANSFER = "TRANSFER"
-    REDEMPTION = "REDEMPTION"
-    BONUS = "BONUS"
-    CORRECTION = "CORRECTION"
+class ShareTransactionType(TimestampMixin, Base):
+    __tablename__ = "share_transaction_types"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    transactions = relationship(
+        "ShareTransaction",
+        back_populates="tx_type_obj",
+        lazy="dynamic",
+        foreign_keys="ShareTransaction.tx_type",
+    )
 
 
-class DividendStatusEnum(str, enum.Enum):
-    DRAFT = "DRAFT"
-    APPROVED = "APPROVED"
-    PAID = "PAID"
-    REVERSED = "REVERSED"
+class DividendStatus(TimestampMixin, Base):
+    __tablename__ = "dividend_statuses"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    dividends = relationship(
+        "Dividend",
+        back_populates="status_obj",
+        lazy="dynamic",
+        foreign_keys="Dividend.status",
+    )
 
 
 # Models
@@ -51,9 +70,17 @@ class ShareProduct(TimestampMixin, Base):
     name = Column(String(255), nullable=False)
     code = Column(String(20), nullable=False)
     product_type = Column(
-        SAEnum(ShareProductTypeEnum),
-        default=ShareProductTypeEnum.ORDINARY,
+        String(50),
+        ForeignKey("share_product_types.code"),
+        default="ORDINARY",
         nullable=False,
+    )
+    product_type_obj = relationship(
+        "ShareProductType",
+        back_populates="products",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[product_type],
     )
     description = Column(Text, nullable=True)
 
@@ -120,7 +147,18 @@ class ShareTransaction(TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("ledger_entries.id"), nullable=True
     )
 
-    tx_type = Column(SAEnum(ShareTxTypeEnum), nullable=False)
+    tx_type = Column(
+        String(50),
+        ForeignKey("share_transaction_types.code"),
+        nullable=False,
+    )
+    tx_type_obj = relationship(
+        "ShareTransactionType",
+        back_populates="transactions",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[tx_type],
+    )
     shares = Column(Numeric(18, 4), nullable=False)
     price_per_share = Column(Numeric(18, 4), nullable=False)
     total_amount = Column(Numeric(18, 4), nullable=False)
@@ -157,7 +195,17 @@ class Dividend(TimestampMixin, Base):
     rate_percent = Column(Numeric(5, 2), nullable=False)  # dividend rate %
     total_amount = Column(Numeric(18, 4), nullable=False)  # total pool declared
     status = Column(
-        SAEnum(DividendStatusEnum), default=DividendStatusEnum.DRAFT, nullable=False
+        String(50),
+        ForeignKey("dividend_statuses.code"),
+        default="DRAFT",
+        nullable=False,
+    )
+    status_obj = relationship(
+        "DividendStatus",
+        back_populates="dividends",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[status],
     )
     approved_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     approved_date = Column(Date, nullable=True)

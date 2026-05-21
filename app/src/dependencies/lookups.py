@@ -9,12 +9,32 @@ for the whole platform.
 
 from sqlalchemy.orm import Session
 
-from app.src.models.member import Gender, MemberStatus, MaritalStatus, Role
+from app.src.models.member import Gender, MemberStatus, MaritalStatus, Role, UserType
+from app.src.models.loans import (
+    LoanInterestMethod,
+    LoanRepaymentFrequency,
+    LoanApplicationStatus,
+    LoanStatus,
+    LoanCollateralType,
+    LoanPenaltyType,
+)
+from app.src.models.ledger import (
+    LedgerAccountType,
+    LedgerAccountCategory,
+    LedgerEntryType,
+    LedgerDrCr,
+    LedgerEntryStatus,
+)
 from app.src.models.savings import (
     SavingsProductType,
     SavingsAccountStatus,
     SavingsTxType,
     SavingsProduct,
+)
+from app.src.models.shares import (
+    ShareProductType,
+    ShareTransactionType,
+    DividendStatus,
 )
 from app.src.models.tenant import Organisation
 
@@ -77,6 +97,142 @@ _MEMBER_STATUSES = [
         "status": "Exited",
         "description": "Member has voluntarily withdrawn from the SACCO.",
     },
+]
+
+
+# Authentication / User Types
+_USER_TYPES = [
+    {"code": "MEMBER", "description": "Regular member portal user."},
+    {"code": "STAFF", "description": "Staff or administrator account."},
+]
+
+
+# Loan lookups
+_LOAN_INTEREST_METHODS = [
+    {"code": "FLAT_RATE", "description": "Interest on original principal."},
+    {"code": "REDUCING_BALANCE", "description": "Interest on outstanding balance."},
+]
+
+_LOAN_REPAYMENT_FREQUENCIES = [
+    {"code": "DAILY", "description": "Daily repayment frequency."},
+    {"code": "WEEKLY", "description": "Weekly repayment frequency."},
+    {"code": "BIWEEKLY", "description": "Biweekly repayment frequency."},
+    {"code": "MONTHLY", "description": "Monthly repayment frequency."},
+    {"code": "QUARTERLY", "description": "Quarterly repayment frequency."},
+    {"code": "ANNUALLY", "description": "Annual repayment frequency."},
+    {"code": "LUMP_SUM", "description": "One-time lump sum repayment."},
+]
+
+_LOAN_APPLICATION_STATUSES = [
+    {"code": "DRAFT", "description": "Draft application."},
+    {"code": "SUBMITTED", "description": "Submitted for review."},
+    {"code": "UNDER_REVIEW", "description": "Under review by staff."},
+    {"code": "APPROVED", "description": "Approved loan application."},
+    {"code": "REJECTED", "description": "Rejected application."},
+    {"code": "WITHDRAWN", "description": "Withdrawn by applicant."},
+]
+
+_LOAN_STATUSES = [
+    {"code": "PENDING", "description": "Approved, not yet disbursed."},
+    {"code": "ACTIVE", "description": "Active loan."},
+    {"code": "IN_ARREARS", "description": "Loan in arrears."},
+    {"code": "WRITTEN_OFF", "description": "Loan written off."},
+    {"code": "CLOSED", "description": "Closed loan."},
+]
+
+_LOAN_COLLATERAL_TYPES = [
+    {"code": "LAND", "description": "Land collateral."},
+    {"code": "VEHICLE", "description": "Vehicle collateral."},
+    {"code": "BUILDING", "description": "Building collateral."},
+    {"code": "EQUIPMENT", "description": "Equipment collateral."},
+    {"code": "SAVINGS", "description": "Savings-backed collateral."},
+    {"code": "SHARES", "description": "Shares-backed collateral."},
+    {"code": "OTHER", "description": "Other collateral."},
+]
+
+_LOAN_PENALTY_TYPES = [
+    {"code": "LATE_PAYMENT", "description": "Late payment penalty."},
+    {"code": "MISSED_PAYMENT", "description": "Missed payment penalty."},
+    {"code": "EARLY_CLOSURE", "description": "Early closure penalty."},
+]
+
+
+# Ledger lookups
+_LEDGER_ACCOUNT_TYPES = [
+    {"code": "ASSET", "description": "Asset account."},
+    {"code": "LIABILITY", "description": "Liability account."},
+    {"code": "EQUITY", "description": "Equity account."},
+    {"code": "INCOME", "description": "Income account."},
+    {"code": "EXPENSE", "description": "Expense account."},
+]
+
+_LEDGER_ACCOUNT_CATEGORIES = [
+    {"code": "CASH", "description": "Cash account."},
+    {"code": "BANK", "description": "Bank account."},
+    {"code": "MOBILE_MONEY", "description": "Mobile money account."},
+    {"code": "LOANS_RECEIVABLE", "description": "Loans receivable."},
+    {"code": "INTEREST_RECEIVABLE", "description": "Interest receivable."},
+    {"code": "MEMBER_SAVINGS", "description": "Member savings liability."},
+    {"code": "MEMBER_SHARES", "description": "Member shares liability."},
+    {"code": "DIVIDENDS_PAYABLE", "description": "Dividends payable liability."},
+    {"code": "RETAINED_EARNINGS", "description": "Retained earnings."},
+    {"code": "RESERVE_FUND", "description": "Reserve fund."},
+    {"code": "INTEREST_INCOME", "description": "Interest income."},
+    {"code": "FEE_INCOME", "description": "Fee income."},
+    {"code": "PENALTY_INCOME", "description": "Penalty income."},
+    {"code": "OPERATING_EXPENSE", "description": "Operating expense."},
+    {"code": "INTEREST_EXPENSE", "description": "Interest expense."},
+    {"code": "LOAN_LOSS_PROVISION", "description": "Loan loss provision."},
+]
+
+_LEDGER_ENTRY_TYPES = [
+    {"code": "SAVINGS_DEPOSIT", "description": "Savings deposit entry."},
+    {"code": "SAVINGS_WITHDRAWAL", "description": "Savings withdrawal entry."},
+    {"code": "SAVINGS_INTEREST", "description": "Savings interest posting."},
+    {"code": "SHARE_PURCHASE", "description": "Share purchase entry."},
+    {"code": "SHARE_REDEMPTION", "description": "Share redemption entry."},
+    {"code": "DIVIDEND_PAYMENT", "description": "Dividend payment entry."},
+    {"code": "LOAN_DISBURSEMENT", "description": "Loan disbursement entry."},
+    {"code": "LOAN_REPAYMENT", "description": "Loan repayment entry."},
+    {"code": "LOAN_PENALTY", "description": "Loan penalty entry."},
+    {"code": "FEE_CHARGE", "description": "Fee charge entry."},
+    {"code": "JOURNAL", "description": "Journal entry."},
+    {"code": "TRANSFER", "description": "Transfer entry."},
+]
+
+_LEDGER_DR_CR = [
+    {"code": "DEBIT", "description": "Debit line."},
+    {"code": "CREDIT", "description": "Credit line."},
+]
+
+_LEDGER_ENTRY_STATUSES = [
+    {"code": "PENDING", "description": "Pending ledger posting."},
+    {"code": "POSTED", "description": "Posted ledger entry."},
+    {"code": "REVERSED", "description": "Reversed entry."},
+    {"code": "VOIDED", "description": "Voided entry."},
+]
+
+
+# Share lookups
+_SHARE_PRODUCT_TYPES = [
+    {"code": "ORDINARY", "description": "Ordinary share product."},
+    {"code": "PREFERENCE", "description": "Preference share product."},
+    {"code": "BONUS", "description": "Bonus share product."},
+]
+
+_SHARE_TX_TYPES = [
+    {"code": "PURCHASE", "description": "Share purchase transaction."},
+    {"code": "TRANSFER", "description": "Share transfer transaction."},
+    {"code": "REDEMPTION", "description": "Share redemption transaction."},
+    {"code": "BONUS", "description": "Bonus share transaction."},
+    {"code": "CORRECTION", "description": "Correction transaction."},
+]
+
+_DIVIDEND_STATUSES = [
+    {"code": "DRAFT", "description": "Draft dividend."},
+    {"code": "APPROVED", "description": "Approved dividend."},
+    {"code": "PAID", "description": "Paid dividend."},
+    {"code": "REVERSED", "description": "Reversed dividend."},
 ]
 
 
@@ -212,6 +368,14 @@ def seed_member_statuses(db: Session) -> None:
     db.commit()
 
 
+def seed_user_types(db: Session) -> None:
+    existing = {u.code for u in db.query(UserType).all()}
+    for row in _USER_TYPES:
+        if row["code"] not in existing:
+            db.add(UserType(**row))
+    db.commit()
+
+
 def seed_marital_statuses(db: Session) -> None:
     existing = {s.status for s in db.query(MaritalStatus).all()}
     for row in _MARITAL_STATUSES:
@@ -285,6 +449,118 @@ def seed_savings_products(db: Session) -> None:
             raise
 
 
+def seed_loan_interest_methods(db: Session) -> None:
+    existing = {item.code for item in db.query(LoanInterestMethod).all()}
+    for row in _LOAN_INTEREST_METHODS:
+        if row["code"] not in existing:
+            db.add(LoanInterestMethod(**row))
+    db.commit()
+
+
+def seed_loan_repayment_frequencies(db: Session) -> None:
+    existing = {item.code for item in db.query(LoanRepaymentFrequency).all()}
+    for row in _LOAN_REPAYMENT_FREQUENCIES:
+        if row["code"] not in existing:
+            db.add(LoanRepaymentFrequency(**row))
+    db.commit()
+
+
+def seed_loan_application_statuses(db: Session) -> None:
+    existing = {item.code for item in db.query(LoanApplicationStatus).all()}
+    for row in _LOAN_APPLICATION_STATUSES:
+        if row["code"] not in existing:
+            db.add(LoanApplicationStatus(**row))
+    db.commit()
+
+
+def seed_loan_statuses(db: Session) -> None:
+    existing = {item.code for item in db.query(LoanStatus).all()}
+    for row in _LOAN_STATUSES:
+        if row["code"] not in existing:
+            db.add(LoanStatus(**row))
+    db.commit()
+
+
+def seed_loan_collateral_types(db: Session) -> None:
+    existing = {item.code for item in db.query(LoanCollateralType).all()}
+    for row in _LOAN_COLLATERAL_TYPES:
+        if row["code"] not in existing:
+            db.add(LoanCollateralType(**row))
+    db.commit()
+
+
+def seed_loan_penalty_types(db: Session) -> None:
+    existing = {item.code for item in db.query(LoanPenaltyType).all()}
+    for row in _LOAN_PENALTY_TYPES:
+        if row["code"] not in existing:
+            db.add(LoanPenaltyType(**row))
+    db.commit()
+
+
+def seed_ledger_account_types(db: Session) -> None:
+    existing = {item.code for item in db.query(LedgerAccountType).all()}
+    for row in _LEDGER_ACCOUNT_TYPES:
+        if row["code"] not in existing:
+            db.add(LedgerAccountType(**row))
+    db.commit()
+
+
+def seed_ledger_account_categories(db: Session) -> None:
+    existing = {item.code for item in db.query(LedgerAccountCategory).all()}
+    for row in _LEDGER_ACCOUNT_CATEGORIES:
+        if row["code"] not in existing:
+            db.add(LedgerAccountCategory(**row))
+    db.commit()
+
+
+def seed_ledger_entry_types(db: Session) -> None:
+    existing = {item.code for item in db.query(LedgerEntryType).all()}
+    for row in _LEDGER_ENTRY_TYPES:
+        if row["code"] not in existing:
+            db.add(LedgerEntryType(**row))
+    db.commit()
+
+
+def seed_ledger_dr_cr(db: Session) -> None:
+    existing = {item.code for item in db.query(LedgerDrCr).all()}
+    for row in _LEDGER_DR_CR:
+        if row["code"] not in existing:
+            db.add(LedgerDrCr(**row))
+    db.commit()
+
+
+def seed_ledger_entry_statuses(db: Session) -> None:
+    existing = {item.code for item in db.query(LedgerEntryStatus).all()}
+    for row in _LEDGER_ENTRY_STATUSES:
+        if row["code"] not in existing:
+            db.add(LedgerEntryStatus(**row))
+    db.commit()
+
+
+def seed_share_product_types(db: Session) -> None:
+    existing = {item.code for item in db.query(ShareProductType).all()}
+    for row in _SHARE_PRODUCT_TYPES:
+        if row["code"] not in existing:
+            db.add(ShareProductType(**row))
+    db.commit()
+
+
+def seed_share_transaction_types(db: Session) -> None:
+    existing = {item.code for item in db.query(ShareTransactionType).all()}
+    for row in _SHARE_TX_TYPES:
+        if row["code"] not in existing:
+            db.add(ShareTransactionType(**row))
+    db.commit()
+
+
+def seed_dividend_statuses(db: Session) -> None:
+    existing = {item.code for item in db.query(DividendStatus).all()}
+    for row in _DIVIDEND_STATUSES:
+        if row["code"] not in existing:
+            db.add(DividendStatus(**row))
+    db.commit()
+
+
 def seed_lookups(db: Session) -> None:
     """
     Convenience function — seeds all lookup tables in one call.
@@ -300,9 +576,24 @@ def seed_lookups(db: Session) -> None:
     """
     seed_roles(db)
     seed_genders(db)
+    seed_user_types(db)
     seed_member_statuses(db)
     seed_marital_statuses(db)
     seed_savings_product_types(db)
     seed_savings_account_statuses(db)
     seed_savings_tx_types(db)
+    seed_loan_interest_methods(db)
+    seed_loan_repayment_frequencies(db)
+    seed_loan_application_statuses(db)
+    seed_loan_statuses(db)
+    seed_loan_collateral_types(db)
+    seed_loan_penalty_types(db)
+    seed_ledger_account_types(db)
+    seed_ledger_account_categories(db)
+    seed_ledger_entry_types(db)
+    seed_ledger_dr_cr(db)
+    seed_ledger_entry_statuses(db)
+    seed_share_product_types(db)
+    seed_share_transaction_types(db)
+    seed_dividend_statuses(db)
     seed_savings_products(db)

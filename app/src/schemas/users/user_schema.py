@@ -3,8 +3,6 @@ from datetime import date
 from typing import Optional
 from uuid import UUID
 
-from app.src.models.member import UserTypeEnum
-
 
 class UserCreate(BaseModel):
     # Required DB Fields
@@ -13,7 +11,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
-    user_type: UserTypeEnum = UserTypeEnum.MEMBER
+    user_type: str = "MEMBER"
 
     password: str
 

@@ -11,7 +11,7 @@ from sqlalchemy import Column, String, Text, Boolean, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.src.config.base_file import Base, TimestampMixin
+from app.src.models.base_file import Base, TimestampMixin
 
 
 class Organisation(TimestampMixin, Base):

@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy import UUID
 from sqlalchemy.orm import relationship
 
-from app.src.config.base_file import Base, TimestampMixin
+from app.src.models.base_file import Base, TimestampMixin
 
 
 class SavingsProductType(TimestampMixin, Base):

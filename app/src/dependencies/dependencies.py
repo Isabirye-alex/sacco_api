@@ -43,15 +43,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import jwt
 
-from app.src.models.member import User, UserTypeEnum
-from app.src.config.database import get_db      # adjust import path to your project
-from app.src.config.settings import settings    # adjust import path to your project
-
+from app.src.models.member import User
+from app.src.config.database import get_db  # adjust import path to your project
+from app.src.config.settings import settings  # adjust import path to your project
 
 bearer_scheme = HTTPBearer()
 
 
 # ─── Token extraction ─────────────────────────────────────────────────────────
+
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
@@ -97,6 +97,7 @@ def get_current_user(
 
 # ─── Layer 1: user_type gate ─────────────────────────────────────────────────
 
+
 def require_member(current_user: User = Depends(get_current_user)) -> User:
     """
     Allow only MEMBER-type users (regular portal access).
@@ -123,7 +124,8 @@ def require_staff(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
-# Layer 2: role gate 
+# Layer 2: role gate
+
 
 def require_roles(*roles: str):
     """
@@ -133,6 +135,7 @@ def require_roles(*roles: str):
     Usage:
         Depends(require_roles("TREASURER", "ADMIN"))
     """
+
     def checker(current_user: User = Depends(require_staff)) -> User:
         if not current_user.has_role(*roles):
             raise HTTPException(
@@ -140,6 +143,7 @@ def require_roles(*roles: str):
                 detail=f"Required role(s): {', '.join(roles)}.",
             )
         return current_user
+
     return checker
 
 

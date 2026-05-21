@@ -1,4 +1,3 @@
-import enum
 from sqlalchemy import (
     Column,
     String,
@@ -7,73 +6,88 @@ from sqlalchemy import (
     Boolean,
     Date,
     Integer,
-    Enum as SAEnum,
     ForeignKey,
     CheckConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.src.config.base_file import Base, TimestampMixin
+from app.src.models.base_file import Base, TimestampMixin
+
+LEDGER_ACCOUNT_TYPE_ASSET = "ASSET"
+LEDGER_ACCOUNT_TYPE_EXPENSE = "EXPENSE"
+DR_CR_DEBIT = "DEBIT"
+DR_CR_CREDIT = "CREDIT"
 
 
-class AccountTypeEnum(str, enum.Enum):
-    ASSET = "ASSET"
-    LIABILITY = "LIABILITY"
-    EQUITY = "EQUITY"
-    INCOME = "INCOME"
-    EXPENSE = "EXPENSE"
+class LedgerAccountType(TimestampMixin, Base):
+    __tablename__ = "ledger_account_types"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    accounts = relationship(
+        "ChartOfAccount",
+        back_populates="account_type_obj",
+        lazy="dynamic",
+        foreign_keys="ChartOfAccount.account_type",
+    )
 
 
-class AccountCategoryEnum(str, enum.Enum):
-    # Assets
-    CASH = "CASH"
-    BANK = "BANK"
-    MOBILE_MONEY = "MOBILE_MONEY"
-    LOANS_RECEIVABLE = "LOANS_RECEIVABLE"
-    INTEREST_RECEIVABLE = "INTEREST_RECEIVABLE"
-    # Liabilities
-    MEMBER_SAVINGS = "MEMBER_SAVINGS"
-    MEMBER_SHARES = "MEMBER_SHARES"
-    DIVIDENDS_PAYABLE = "DIVIDENDS_PAYABLE"
-    # Equity
-    RETAINED_EARNINGS = "RETAINED_EARNINGS"
-    RESERVE_FUND = "RESERVE_FUND"
-    # Income
-    INTEREST_INCOME = "INTEREST_INCOME"
-    FEE_INCOME = "FEE_INCOME"
-    PENALTY_INCOME = "PENALTY_INCOME"
-    # Expense
-    OPERATING_EXPENSE = "OPERATING_EXPENSE"
-    INTEREST_EXPENSE = "INTEREST_EXPENSE"
-    LOAN_LOSS_PROVISION = "LOAN_LOSS_PROVISION"
+class LedgerAccountCategory(TimestampMixin, Base):
+    __tablename__ = "ledger_account_categories"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    accounts = relationship(
+        "ChartOfAccount",
+        back_populates="account_category_obj",
+        lazy="dynamic",
+        foreign_keys="ChartOfAccount.account_category",
+    )
 
 
-class LedgerEntryTypeEnum(str, enum.Enum):
-    SAVINGS_DEPOSIT = "SAVINGS_DEPOSIT"
-    SAVINGS_WITHDRAWAL = "SAVINGS_WITHDRAWAL"
-    SAVINGS_INTEREST = "SAVINGS_INTEREST"
-    SHARE_PURCHASE = "SHARE_PURCHASE"
-    SHARE_REDEMPTION = "SHARE_REDEMPTION"
-    DIVIDEND_PAYMENT = "DIVIDEND_PAYMENT"
-    LOAN_DISBURSEMENT = "LOAN_DISBURSEMENT"
-    LOAN_REPAYMENT = "LOAN_REPAYMENT"
-    LOAN_PENALTY = "LOAN_PENALTY"
-    FEE_CHARGE = "FEE_CHARGE"
-    JOURNAL = "JOURNAL"
-    TRANSFER = "TRANSFER"
+class LedgerEntryType(TimestampMixin, Base):
+    __tablename__ = "ledger_entry_types"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    entries = relationship(
+        "LedgerEntry",
+        back_populates="entry_type_obj",
+        lazy="dynamic",
+        foreign_keys="LedgerEntry.entry_type",
+    )
 
 
-class DrCrEnum(str, enum.Enum):
-    DEBIT = "DEBIT"
-    CREDIT = "CREDIT"
+class LedgerDrCr(TimestampMixin, Base):
+    __tablename__ = "ledger_dr_crs"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    lines = relationship(
+        "LedgerLine",
+        back_populates="dr_cr_obj",
+        lazy="dynamic",
+        foreign_keys="LedgerLine.dr_cr",
+    )
 
 
-class LedgerEntryStatusEnum(str, enum.Enum):
-    PENDING = "PENDING"
-    POSTED = "POSTED"
-    REVERSED = "REVERSED"
-    VOIDED = "VOIDED"
+class LedgerEntryStatus(TimestampMixin, Base):
+    __tablename__ = "ledger_entry_statuses"
+
+    code = Column(String(50), primary_key=True, unique=True)
+    description = Column(Text, nullable=True)
+
+    entries = relationship(
+        "LedgerEntry",
+        back_populates="status_obj",
+        lazy="dynamic",
+        foreign_keys="LedgerEntry.status",
+    )
 
 
 class ChartOfAccount(TimestampMixin, Base):
@@ -87,12 +101,33 @@ class ChartOfAccount(TimestampMixin, Base):
     organisation_id = Column(
         UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
     )
-    code = Column(String(20), nullable=False)  # e.g. "1001"
-    name = Column(String(255), nullable=False)
-    account_type = Column(SAEnum(AccountTypeEnum), nullable=False)
-    account_category = Column(SAEnum(AccountCategoryEnum), nullable=True)
+    name = Column(String(255), nullable=False, unique=True)
+    account_type = Column(
+        String(50),
+        ForeignKey("ledger_account_types.code"),
+        nullable=False,
+    )
+    account_category = Column(
+        String(50),
+        ForeignKey("ledger_account_categories.code"),
+        nullable=True,
+    )
     parent_id = Column(
         UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+    account_type_obj = relationship(
+        "LedgerAccountType",
+        back_populates="accounts",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[account_type],
+    )
+    account_category_obj = relationship(
+        "LedgerAccountCategory",
+        back_populates="accounts",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[account_category],
     )
     description = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
@@ -107,10 +142,13 @@ class ChartOfAccount(TimestampMixin, Base):
 
     # normal balance side (ASSET/EXPENSE = DEBIT; LIABILITY/EQUITY/INCOME = CREDIT)
     @property
-    def normal_balance(self) -> DrCrEnum:
-        if self.account_type in (AccountTypeEnum.ASSET, AccountTypeEnum.EXPENSE):
-            return DrCrEnum.DEBIT
-        return DrCrEnum.CREDIT
+    def normal_balance(self) -> str:
+        if self.account_type in (
+            LEDGER_ACCOUNT_TYPE_ASSET,
+            LEDGER_ACCOUNT_TYPE_EXPENSE,
+        ):
+            return DR_CR_DEBIT
+        return DR_CR_CREDIT
 
 
 class LedgerEntry(TimestampMixin, Base):
@@ -130,7 +168,18 @@ class LedgerEntry(TimestampMixin, Base):
     )
 
     entry_no = Column(String(50), nullable=False)  # sequential per org
-    entry_type = Column(SAEnum(LedgerEntryTypeEnum), nullable=False)
+    entry_type = Column(
+        String(50),
+        ForeignKey("ledger_entry_types.code"),
+        nullable=False,
+    )
+    entry_type_obj = relationship(
+        "LedgerEntryType",
+        back_populates="entries",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[entry_type],
+    )
     entry_date = Column(Date, nullable=False)
     description = Column(Text, nullable=True)
     reference = Column(
@@ -141,9 +190,17 @@ class LedgerEntry(TimestampMixin, Base):
     total_credit = Column(Numeric(18, 4), nullable=False)
 
     status = Column(
-        SAEnum(LedgerEntryStatusEnum),
-        default=LedgerEntryStatusEnum.POSTED,
+        String(50),
+        ForeignKey("ledger_entry_statuses.code"),
+        default="POSTED",
         nullable=False,
+    )
+    status_obj = relationship(
+        "LedgerEntryStatus",
+        back_populates="entries",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[status],
     )
     reversal_of_id = Column(
         UUID(as_uuid=True), ForeignKey("ledger_entries.id"), nullable=True
@@ -183,7 +240,18 @@ class LedgerLine(TimestampMixin, Base):
         index=True,
     )
 
-    dr_cr = Column(SAEnum(DrCrEnum), nullable=False)
+    dr_cr = Column(
+        String(50),
+        ForeignKey("ledger_dr_crs.code"),
+        nullable=False,
+    )
+    dr_cr_obj = relationship(
+        "LedgerDrCr",
+        back_populates="lines",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[dr_cr],
+    )
     amount = Column(Numeric(18, 4), nullable=False)
     description = Column(Text, nullable=True)
 

@@ -1,16 +1,9 @@
-"""
-app.src.models
-==============
-Central export point for all ORM models.
-Alembic's env.py imports from here to register all models on Base.metadata.
-"""
+from app.src.models.base_file import Base, TimestampMixin  # noqa: F401
 
-from app.src.config.base_file import Base, TimestampMixin  # noqa: F401
-
-# ── Multi-tenancy ──────────────────────────────────────────────────────────
+# Multi-tenancy
 from app.src.models.tenant import Organisation, Branch  # noqa: F401
 
-# ── Members & Auth ─────────────────────────────────────────────────────────
+# Members & Auth 
 from app.src.models.member import (
     MaritalStatus,
     MemberStatus,
@@ -18,10 +11,9 @@ from app.src.models.member import (
     NextOfKin,
     User,
     Role,
-    UserTypeEnum,
 )
 
-# ── Savings ────────────────────────────────────────────────────────────────
+# Savings 
 from app.src.models.savings import (
     SavingsProduct,
     SavingsAccount,
@@ -31,19 +23,16 @@ from app.src.models.savings import (
     SavingsTxType,
 )
 
-# ── Shares / Equity ───────────────────────────────────────────────────────-
+# Shares / Equity
 from app.src.models.shares import (  # noqa: F401
     ShareProduct,
     ShareAccount,
     ShareTransaction,
     Dividend,
     DividendPayment,
-    ShareProductTypeEnum,
-    ShareTxTypeEnum,
-    DividendStatusEnum,
 )
 
-# ── Loans & Repayments ───────────────────────────────────────────────────-
+# Loans & Repayments
 from app.src.models.loans import (  # noqa: F401
     LoanProduct,
     LoanApplication,
@@ -53,28 +42,17 @@ from app.src.models.loans import (  # noqa: F401
     LoanRepaymentSchedule,
     LoanRepayment,
     LoanPenalty,
-    RepaymentFrequencyEnum,
-    InterestMethodEnum,
-    LoanApplicationStatusEnum,
-    LoanStatusEnum,
-    CollateralTypeEnum,
-    PenaltyTypeEnum,
 )
 
-# ── Ledger / Double-Entry ─────────────────────────────────────────────────
+# Ledger / Double-Entry
 from app.src.models.ledger import (  # noqa: F401
     ChartOfAccount,
     LedgerEntry,
     LedgerLine,
     JournalEntry,
-    AccountTypeEnum,
-    AccountCategoryEnum,
-    LedgerEntryTypeEnum,
-    DrCrEnum,
-    LedgerEntryStatusEnum,
 )
 
-# ── Users & Auth (existing) ───────────────────────────────────────────────
+# Users & Auth (existing)
 from app.src.models.users.login_logs import LoginLogs  # noqa: F401
 
 __all__ = [
@@ -90,7 +68,6 @@ __all__ = [
     "User",
     "NextOfKin",
     "Role",
-    "UserTypeEnum",
     # savings
     "SavingsProduct",
     "SavingsAccount",
@@ -104,9 +81,6 @@ __all__ = [
     "ShareTransaction",
     "Dividend",
     "DividendPayment",
-    "ShareProductTypeEnum",
-    "ShareTxTypeEnum",
-    "DividendStatusEnum",
     # loans
     "LoanProduct",
     "LoanApplication",
@@ -116,22 +90,11 @@ __all__ = [
     "LoanRepaymentSchedule",
     "LoanRepayment",
     "LoanPenalty",
-    "RepaymentFrequencyEnum",
-    "InterestMethodEnum",
-    "LoanApplicationStatusEnum",
-    "LoanStatusEnum",
-    "CollateralTypeEnum",
-    "PenaltyTypeEnum",
     # ledger
     "ChartOfAccount",
     "LedgerEntry",
     "LedgerLine",
     "JournalEntry",
-    "AccountTypeEnum",
-    "AccountCategoryEnum",
-    "LedgerEntryTypeEnum",
-    "DrCrEnum",
-    "LedgerEntryStatusEnum",
     # users (existing)
     "LoginLogs",
 ]
