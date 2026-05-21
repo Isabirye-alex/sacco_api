@@ -29,12 +29,12 @@ from app.src.schemas.member.member_schema import (
 
 
 def _resolve_savings_account_status_id(db: Session, code: str = "ACTIVE"):
-    status = db.query(SavingsAccountStatus).filter_by(code=code).first()
-    if not status:
-        status = SavingsAccountStatus(code=code, description=code)
-        db.add(status)
+    status_obj = db.query(SavingsAccountStatus).filter_by(code=code).first()
+    if not status_obj:
+        status_obj = SavingsAccountStatus(code=code, description=code)
+        db.add(status_obj)
         db.flush()
-    return status.id
+    return status_obj.id
 
 
 def _find_default_savings_product(db: Session) -> SavingsProduct:
@@ -74,12 +74,11 @@ def _create_member_savings_account(db: Session, member: Member):
 
 
 def create_member(db: Session, member: MemberCreate) -> Member:
-    # 1. Automatically generate the unique 8-character member number
     generated_no = generate_random_member_no(db, member.organisation_id)
 
     db_member = Member(
         organisation_id=member.organisation_id,
-        member_no=generated_no,  # Auto-assigned safely
+        member_no=generated_no,
         first_name=member.first_name,
         middle_name=member.middle_name,
         last_name=member.last_name,
@@ -89,38 +88,38 @@ def create_member(db: Session, member: MemberCreate) -> Member:
         status_id=member.status_id,
         date_of_birth=member.date_of_birth,
         national_id=member.national_id,
-        marital_status_id=member.marital_status_id,  # Matches your model naming
+        marital_status_id=member.marital_status_id,
         photo_url=member.photo_url,
         phone_primary=member.phone_primary,
         phone_secondary=member.phone_secondary,
         country=member.country,
         village=member.village,
         district=member.district,
-        joined_date=member.joined_date,
+        joined_date=member.joined_date or date.today(),
         exit_date=member.exit_date,
         exit_reason=member.exit_reason,
     )
 
     try:
-        with db.begin():
+        # Wrap all execution statements that could cause constraint errors inside the savepoint context
+        with db.begin_nested():
             db.add(db_member)
-            db.flush()
+            db.flush()  # Populates db_member.id so the savings account foreign key works
             _create_member_savings_account(db, db_member)
-            db.refresh(db_member)
-
+        
+        # Safe to refresh outside the savepoint context block
+        db.refresh(db_member)
+        db.commit()
         return db_member
 
     except IntegrityError as e:
-        db.rollback()  # Cleans up the failed transaction state
         error_msg = str(e.orig)
 
-        # Catch phone duplication
         if "phone_primary" in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="A member with this primary phone number already exists.",
             )
-        # Catch invalid Foreign Keys (e.g. branch_id, gender_id, or status_id doesn't exist)
         elif (
             "foreign key constraint" in error_msg.lower()
             or "violates foreign key" in error_msg.lower()
@@ -129,11 +128,11 @@ def create_member(db: Session, member: MemberCreate) -> Member:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs.",
             )
-        # Fallback for any other unique constraints
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Database integrity violation occurred while saving member details.",
         )
+
 
 
 def create_gender(db: Session, gender: GenderCreate):
@@ -142,8 +141,9 @@ def create_gender(db: Session, gender: GenderCreate):
         description=gender.description,
     )
     db.add(db_gender)
-    db.commit()
+    db.flush()
     db.refresh(db_gender)
+    db.commit()
     return db_gender
 
 
@@ -153,7 +153,7 @@ def create_member_status(db: Session, status: MemberStatusCreate):
         description=status.description,
     )
     db.add(db_status)
-    db.commit()
+    db.flush()
     db.refresh(db_status)
     return db_status
 
@@ -163,8 +163,9 @@ def create_marital_status(db: Session, status: MaritalStatusCreate):
         status=status.status,
     )
     db.add(db_status)
-    db.commit()
+    db.flush()
     db.refresh(db_status)
+    db.commit()
     return db_status
 
 
@@ -174,8 +175,9 @@ def create_role(db: Session, role: RoleCreate):
         description=role.description,
     )
     db.add(db_role)
-    db.commit()
+    db.flush()
     db.refresh(db_role)
+    db.commit()
     return db_role
 
 
@@ -193,6 +195,7 @@ def create_next_of_kin(db: Session, kin: NextOfKinCreate):
         marital_status_id=kin.marital_status_id,
     )
     db.add(db_kin)
-    db.commit()
+    db.flush()
     db.refresh(db_kin)
+    db.commit()
     return db_kin

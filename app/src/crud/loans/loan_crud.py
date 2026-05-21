@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from app.src.utils.generate_unique_application_no import generate_unique_application_number
 from app.src.models.loans import (
     LoanProduct,
     LoanApplication,
@@ -20,6 +20,7 @@ from app.src.schemas.loans.loan_schema import (
     LoanRepaymentCreate,
     LoanPenaltyCreate,
 )
+from app.src.utils import generate_unique_application_no
 
 
 def create_loan_product(db: Session, product: LoanProductCreate):
@@ -51,12 +52,13 @@ def create_loan_product(db: Session, product: LoanProductCreate):
 
 
 def create_loan_application(db: Session, application: LoanApplicationCreate):
+    application_no = generate_unique_application_number(db, application.organisation_id)
     db_application = LoanApplication(
         organisation_id=application.organisation_id,
         branch_id=application.branch_id,
         member_id=application.member_id,
         product_id=application.product_id,
-        application_no=application.application_no,
+        application_no=application_no,
         applied_amount=application.applied_amount,
         approved_amount=application.approved_amount,
         term_months=application.term_months,

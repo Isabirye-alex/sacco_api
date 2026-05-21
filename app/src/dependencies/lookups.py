@@ -344,7 +344,7 @@ _SAVINGS_PRODUCTS = [
 
 
 def seed_roles(db: Session) -> None:
-    """Insert system roles if they don't exist. Safe to call multiple times."""
+    """Insert system roles if they don't exist."""
     existing = {r.role for r in db.query(Role).all()}
     for row in _ROLES:
         if row["role"] not in existing:

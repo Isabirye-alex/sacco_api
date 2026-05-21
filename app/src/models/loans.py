@@ -187,7 +187,6 @@ class LoanProduct(TimestampMixin, Base):
     )
     loans = relationship("Loan", back_populates="product", lazy="dynamic")
 
-
 class LoanApplication(TimestampMixin, Base):
     """Loan application — created before disbursement."""
 

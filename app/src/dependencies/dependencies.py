@@ -44,13 +44,13 @@ from sqlalchemy.orm import Session
 import jwt
 
 from app.src.models.member import User
-from app.src.config.database import get_db  # adjust import path to your project
-from app.src.config.settings import settings  # adjust import path to your project
+from app.src.config.database import get_db 
+from app.src.config.settings import settings 
 
 bearer_scheme = HTTPBearer()
 
 
-# ─── Token extraction ─────────────────────────────────────────────────────────
+# Token extraction
 
 
 def get_current_user(
@@ -95,7 +95,7 @@ def get_current_user(
     return user
 
 
-# ─── Layer 1: user_type gate ─────────────────────────────────────────────────
+#Layer 1: user_type gate 
 
 
 def require_member(current_user: User = Depends(get_current_user)) -> User:
@@ -125,7 +125,6 @@ def require_staff(current_user: User = Depends(get_current_user)) -> User:
 
 
 # Layer 2: role gate
-
 
 def require_roles(*roles: str):
     """
