@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.src.api.routes.app_routes import api_router
 from app.src.config.database import get_db
 from app.src.dependencies.lookups import seed_lookups
+from fastapi.middleware.cors import CORSMiddleware
 
 # 1. Define the lifespan context manager
 @asynccontextmanager
@@ -20,8 +21,15 @@ async def lifespan(app: FastAPI):
     # Shutdown logic (if any) can go here
 
 # 2. Pass the lifespan to the FastAPI instance
-app = FastAPI(lifespan=lifespan)
 
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/root")

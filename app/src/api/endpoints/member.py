@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 import logging
 
@@ -10,6 +10,7 @@ from app.src.crud.member.member_crud import (
     create_marital_status,
     create_role,
     create_next_of_kin,
+    get_current_member
 )
 from app.src.models.member import (
     Gender,
@@ -19,6 +20,7 @@ from app.src.models.member import (
     NextOfKin,
 )
 from app.src.schemas.member.member_schema import (
+    CombinedMemberResponse,
     MemberCreate,
     MemberResponse,
     GenderCreate,
@@ -157,3 +159,10 @@ def create_next_of_kin_endpoint(kin: NextOfKinCreate, db: Session = Depends(get_
 @router.get("/next-of-kin", response_model=list[NextOfKinResponse])
 def list_next_of_kin(db: Session = Depends(get_db)):
     return db.query(NextOfKin).all()
+
+@router.get('/member/{user_id}', response_model=CombinedMemberResponse, status_code=status.HTTP_200_OK)
+def get_member_data(user_id: str,db:Session=Depends(get_db)):
+    try:
+        return get_current_member(db, user_id)  
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'Error str{e}')

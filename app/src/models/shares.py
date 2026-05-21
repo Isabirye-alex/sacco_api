@@ -23,7 +23,7 @@ class ShareProductType(TimestampMixin, Base):
     products = relationship(
         "ShareProduct",
         back_populates="product_type_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="ShareProduct.product_type",
     )
 
@@ -37,7 +37,7 @@ class ShareTransactionType(TimestampMixin, Base):
     transactions = relationship(
         "ShareTransaction",
         back_populates="tx_type_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="ShareTransaction.tx_type",
     )
 
@@ -51,7 +51,7 @@ class DividendStatus(TimestampMixin, Base):
     dividends = relationship(
         "Dividend",
         back_populates="status_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="Dividend.status",
     )
 
@@ -91,8 +91,8 @@ class ShareProduct(TimestampMixin, Base):
     is_redeemable = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
-    accounts = relationship("ShareAccount", back_populates="product", lazy="dynamic")
-    dividends = relationship("Dividend", back_populates="product", lazy="dynamic")
+    accounts = relationship("ShareAccount", back_populates="product", lazy="select")
+    dividends = relationship("Dividend", back_populates="product", lazy="select")
 
 
 class ShareAccount(TimestampMixin, Base):
@@ -128,7 +128,7 @@ class ShareAccount(TimestampMixin, Base):
         lazy="joined",
     )
     dividend_payments = relationship(
-        "DividendPayment", back_populates="share_account", lazy="dynamic"
+        "DividendPayment", back_populates="share_account", lazy="select"
     )
 
 
@@ -213,7 +213,7 @@ class Dividend(TimestampMixin, Base):
 
     product = relationship("ShareProduct", back_populates="dividends")
     payments = relationship(
-        "DividendPayment", back_populates="dividend", lazy="dynamic"
+        "DividendPayment", back_populates="dividend", lazy="select"
     )
 
 

@@ -1,6 +1,7 @@
 from datetime import date
 from app.src.utils.generate_random_account_number import generate_unique_account_no
-
+from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -218,3 +219,22 @@ def create_next_of_kin(db: Session, kin: NextOfKinCreate):
     db.refresh(db_kin)
     db.commit()
     return db_kin
+
+
+def get_current_member(db: Session, user_id: str):
+    current_user = (
+        db.query(Member)
+        .filter(Member.id == user_id)
+        .options(
+            selectinload(Member.savings_accounts),
+            selectinload(Member.share_accounts),
+            selectinload(Member.loans),
+            selectinload(Member.next_of_kin),
+            selectinload(Member.marital_status),
+            selectinload(Member.gender),
+            selectinload(Member.marital_status),
+            selectinload(Member.branch)
+
+        ).first()
+    )
+    return current_user

@@ -26,7 +26,7 @@ class UserType(TimestampMixin, Base):
     users = relationship(
         "User",
         back_populates="user_type_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="User.user_type",
     )
 
@@ -43,7 +43,7 @@ class Gender(TimestampMixin, Base):
     gender = Column(String(50), nullable=False, unique=True)
     description = Column(Text, nullable=True)
 
-    members = relationship("Member", back_populates="gender", lazy="dynamic")
+    members = relationship("Member", back_populates="gender", lazy="select")
 
 
 class MemberStatus(TimestampMixin, Base):
@@ -57,7 +57,7 @@ class MemberStatus(TimestampMixin, Base):
     status = Column(String(50), nullable=False, unique=True)
     description = Column(Text, nullable=True)
 
-    members = relationship("Member", back_populates="status", lazy="dynamic")
+    members = relationship("Member", back_populates="status", lazy="select")
 
 
 class MaritalStatus(TimestampMixin, Base):
@@ -71,9 +71,9 @@ class MaritalStatus(TimestampMixin, Base):
     status = Column(String(50), nullable=False, unique=True)
     description = Column(Text, nullable=True)
 
-    members = relationship("Member", back_populates="marital_status", lazy="dynamic")
+    members = relationship("Member", back_populates="marital_status", lazy="select")
     next_of_kin = relationship(
-        "NextOfKin", back_populates="marital_status", lazy="dynamic"
+        "NextOfKin", back_populates="marital_status", lazy="select"
     )
 
 
@@ -99,7 +99,7 @@ class Role(TimestampMixin, Base):
     is_system = Column(Boolean, default=False, nullable=False)  # protected seed rows
 
     # one Role → many Users
-    users = relationship("User", back_populates="role", lazy="dynamic")
+    users = relationship("User", back_populates="role", lazy="select")
 
 
 class User(TimestampMixin, Base):
@@ -118,14 +118,10 @@ class User(TimestampMixin, Base):
 
     __tablename__ = "users"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     role_id = Column(
-        UUID(as_uuid=True), ForeignKey("roles.id", ondelete="RESTRICT"), nullable=False
+        UUID(as_uuid=True), ForeignKey("roles.id", ondelete="RESTRICT"), nullable=True
     )
 
-    # structural split — set once at creation, never changed
     user_type = Column(
         String(50),
         ForeignKey("user_types.code"),
@@ -166,7 +162,7 @@ class User(TimestampMixin, Base):
     member = relationship("Member", back_populates="user", uselist=False, lazy="raise")
 
     __table_args__ = (
-        UniqueConstraint("organisation_id", "email", name="uq_user_email_per_org"),
+        UniqueConstraint("email", name="uq_user_email_per_org"),
     )
 
     # convenience helpers (used in FastAPI dependencies)
@@ -269,15 +265,15 @@ class Member(TimestampMixin, Base):
         "MaritalStatus", back_populates="members", lazy="joined", uselist=False
     )
     user = relationship("User", back_populates="member", lazy="raise", uselist=False)
-    next_of_kin = relationship("NextOfKin", back_populates="member", lazy="dynamic")
+    next_of_kin = relationship("NextOfKin", back_populates="member", lazy="select")
 
     savings_accounts = relationship(
-        "SavingsAccount", back_populates="member", lazy="dynamic"
+        "SavingsAccount", back_populates="member", lazy="select"
     )
     share_accounts = relationship(
-        "ShareAccount", back_populates="member", lazy="dynamic"
+        "ShareAccount", back_populates="member", lazy="select"
     )
-    loans = relationship("Loan", back_populates="member", lazy="dynamic")
+    loans = relationship("Loan", back_populates="member", lazy="select")
 
     __table_args__ = (
         UniqueConstraint("organisation_id", "member_no", name="uq_member_no_per_org"),

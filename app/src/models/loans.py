@@ -35,13 +35,13 @@ class LoanInterestMethod(TimestampMixin, Base):
     products = relationship(
         "LoanProduct",
         back_populates="interest_method_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="LoanProduct.interest_method",
     )
     loans = relationship(
         "Loan",
         back_populates="interest_method_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="Loan.interest_method",
     )
 
@@ -55,13 +55,13 @@ class LoanRepaymentFrequency(TimestampMixin, Base):
     products = relationship(
         "LoanProduct",
         back_populates="repayment_frequency_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="LoanProduct.repayment_frequency",
     )
     loans = relationship(
         "Loan",
         back_populates="repayment_frequency_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="Loan.repayment_frequency",
     )
 
@@ -75,7 +75,7 @@ class LoanApplicationStatus(TimestampMixin, Base):
     applications = relationship(
         "LoanApplication",
         back_populates="status_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="LoanApplication.status",
     )
 
@@ -89,7 +89,7 @@ class LoanStatus(TimestampMixin, Base):
     loans = relationship(
         "Loan",
         back_populates="status_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="Loan.status",
     )
 
@@ -103,7 +103,7 @@ class LoanCollateralType(TimestampMixin, Base):
     collaterals = relationship(
         "LoanCollateral",
         back_populates="collateral_type_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="LoanCollateral.collateral_type",
     )
 
@@ -117,7 +117,7 @@ class LoanPenaltyType(TimestampMixin, Base):
     penalties = relationship(
         "LoanPenalty",
         back_populates="penalty_type_obj",
-        lazy="dynamic",
+        lazy="select",
         foreign_keys="LoanPenalty.penalty_type",
     )
 
@@ -181,9 +181,9 @@ class LoanProduct(TimestampMixin, Base):
     is_active = Column(Boolean, default=True, nullable=False)
 
     applications = relationship(
-        "LoanApplication", back_populates="product", lazy="dynamic"
+        "LoanApplication", back_populates="product", lazy="select"
     )
-    loans = relationship("Loan", back_populates="product", lazy="dynamic")
+    loans = relationship("Loan", back_populates="product", lazy="select")
 
 class LoanApplication(TimestampMixin, Base):
     """Loan application — created before disbursement."""
@@ -230,10 +230,10 @@ class LoanApplication(TimestampMixin, Base):
     product = relationship("LoanProduct", back_populates="applications")
     loan = relationship("Loan", back_populates="application", uselist=False)
     guarantors = relationship(
-        "LoanGuarantor", back_populates="application", lazy="dynamic"
+        "LoanGuarantor", back_populates="application", lazy="select"
     )
     collaterals = relationship(
-        "LoanCollateral", back_populates="application", lazy="dynamic"
+        "LoanCollateral", back_populates="application", lazy="select"
     )
 
 
@@ -328,11 +328,11 @@ class Loan(TimestampMixin, Base):
     schedule = relationship(
         "LoanRepaymentSchedule",
         back_populates="loan",
-        lazy="dynamic",
+        lazy="select",
         order_by="LoanRepaymentSchedule.due_date",
     )
-    repayments = relationship("LoanRepayment", back_populates="loan", lazy="dynamic")
-    penalties = relationship("LoanPenalty", back_populates="loan", lazy="dynamic")
+    repayments = relationship("LoanRepayment", back_populates="loan", lazy="select")
+    penalties = relationship("LoanPenalty", back_populates="loan", lazy="select")
 
 
 class LoanGuarantor(TimestampMixin, Base):

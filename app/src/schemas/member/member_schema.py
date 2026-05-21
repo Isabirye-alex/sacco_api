@@ -1,8 +1,13 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr
+
+from app.src.schemas.loans.loan_schema import LoanResponse
+from app.src.schemas.savings import SavingsAccountResponse
+from app.src.schemas.shares.share_schema import ShareAccountResponse
+from app.src.schemas.tenant.tenant_schema import BranchResponse
 
 
 class GenderCreate(BaseModel):
@@ -136,3 +141,51 @@ class MemberResponse(BaseModel):
     joined_date: Optional[datetime] = None
     exit_date: Optional[datetime] = None
     exit_reason: Optional[str] = None
+
+
+class CombinedMemberResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, validate_by_name=True)
+
+    # --- Core Member Flat Data ---
+    id: UUID
+    member_no: str
+    first_name: str
+    middle_name: Optional[str] = None
+    last_name: str
+    email: Optional[EmailStr] = None
+    national_id: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    photo_url: Optional[str] = None
+    
+    # --- Contact & Address ---
+    phone_primary: Optional[str] = None
+    phone_secondary: Optional[str] = None
+    country: Optional[str] = None
+    district: Optional[str] = None
+    village: Optional[str] = None
+    physical_address: Optional[str] = None
+
+    # --- Lifecycle Data ---
+    joined_date: Optional[datetime] = None
+    exit_date: Optional[datetime] = None
+    exit_reason: Optional[str] = None
+
+    # --- Foreign Key Identifiers ---
+    organisation_id: Optional[UUID] = None
+    user_id: Optional[UUID] = None
+    branch_id: UUID
+    gender_id: UUID
+    status_id: UUID
+    marital_status_id: Optional[UUID] = None
+
+    # --- Nested Relationships (1-to-1 or Many-to-1 Lookups) ---
+    branch: Optional[BranchResponse] = None
+    gender: Optional[GenderResponse] = None
+    status: Optional[MemberStatusResponse] = None
+    marital_status: Optional[MaritalStatusResponse] = None
+
+    # --- Nested Collections (1-to-Many Relationships) ---
+    next_of_kin: List[NextOfKinResponse] = []
+    savings_accounts: List[SavingsAccountResponse] = []
+    share_accounts: List[ShareAccountResponse] = []
+    loans: List[LoanResponse] = []

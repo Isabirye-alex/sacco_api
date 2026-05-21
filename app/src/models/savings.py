@@ -23,7 +23,7 @@ class SavingsProductType(TimestampMixin, Base):
     products = relationship(
         "SavingsProduct",
         back_populates="product_type_obj",
-        lazy="dynamic",
+        lazy="select",
     )
 
 
@@ -36,7 +36,7 @@ class SavingsAccountStatus(TimestampMixin, Base):
     accounts = relationship(
         "SavingsAccount",
         back_populates="status_obj",
-        lazy="dynamic",
+        lazy="select",
     )
 
 
@@ -49,7 +49,7 @@ class SavingsTxType(TimestampMixin, Base):
     transactions = relationship(
         "SavingsTransaction",
         back_populates="tx_type_obj",
-        lazy="dynamic",
+        lazy="select",
     )
 
 # Models
@@ -90,7 +90,7 @@ class SavingsProduct(TimestampMixin, Base):
 
     is_active = Column(Boolean, default=True, nullable=False)
 
-    accounts = relationship("SavingsAccount", back_populates="product", lazy="dynamic")
+    accounts = relationship("SavingsAccount", back_populates="product", lazy="select")
     product_type_obj = relationship(
         "SavingsProductType",
         back_populates="products",
@@ -130,8 +130,8 @@ class SavingsAccount(TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     # relationships
-    member = relationship("Member", back_populates="savings_accounts")
-    product = relationship("SavingsProduct", back_populates="accounts")
+    member = relationship("Member", back_populates="savings_accounts", lazy='select')
+    product = relationship("SavingsProduct", back_populates="accounts", lazy='select')
     status_obj = relationship(
         "SavingsAccountStatus",
         back_populates="accounts",
@@ -139,7 +139,7 @@ class SavingsAccount(TimestampMixin, Base):
         uselist=False,
     )
     transactions = relationship(
-        "SavingsTransaction", back_populates="account", lazy="dynamic"
+        "SavingsTransaction", back_populates="account", lazy="select"
     )
 
 
