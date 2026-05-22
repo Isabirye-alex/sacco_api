@@ -1,60 +1,56 @@
-from sqlalchemy import func
+from sqlalchemy import func, cast, Integer
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.src.models.member import Member
 
-def get_next_sequential_number(db: Session, organisation_id: str) -> str:
+
+def get_next_sequential_number(db: Session) -> str:
     """
-    Looks up the highest current member number for the organization 
-    and increments it by 1. Returns a zero-padded string.
+    Safely finds the highest current member number globally.
+    Uses regex to isolate numeric digits before casting to prevent DB errors,
+    falling back securely if no records exist.
     """
-    # Query the maximum member number for this specific organization
-    max_member_no = db.query(func.max(Member.member_no)).filter(
-        Member.organisation_id == organisation_id
+    # 1. Clean the string to ensure only numeric digits remain
+    clean_numeric_string = func.regexp_replace(Member.member_no, r"[^\d]", "", "g")
+
+    # 2. Extract the highest numerical value safely
+    max_val = db.query(
+        func.max(cast(func.nullif(clean_numeric_string, ""), Integer))
     ).scalar()
-    
-    # Handle the base case for the very first member
-    if not max_member_no or not max_member_no.isdigit():
+
+    # 3. Increment the sequence counter safely
+    if max_val is None:
         next_number = 1
     else:
-        next_number = int(max_member_no) + 1
-        
-    # Returns a 6-digit zero-padded string (e.g., "000001", "000142")
+        next_number = int(max_val) + 1
+
     return f"{next_number:06d}"
 
 
-def register_member_safely(db: Session, organisation_id: str, member_data: dict) -> Member:
+def register_member_safely(db: Session, member_data: dict) -> Member:
     """
-    Safely creates a member. If a race condition happens (another process 
-    takes the sequential number first), it rolls back and retries smoothly.
+    Creates a member tracking a global sequential sequence.
+    Handles any tight concurrency race conditions safely via targeted loop retries.
     """
-    # Set a safety limit so an infinite loop doesn't hang the server if something else breaks
-    max_retries = 10  
+    max_retries = 15
     attempts = 0
 
     while attempts < max_retries:
         try:
-            # 1. Calculate the next expected sequential number
-            assigned_no = get_next_sequential_number(db, organisation_id)
-            
-            # 2. Instantiate the model
-            new_member = Member(
-                organisation_id=organisation_id,
-                member_no=assigned_no,
-                **member_data
-            )
+            # Generate the next padded string key
+            assigned_no = get_next_sequential_number(db)
+
+            new_member = Member(member_no=assigned_no, **member_data)
             db.add(new_member)
-            
-            # 3. Attempt to flush/commit to the database
             db.commit()
             return new_member
 
         except IntegrityError:
-            # RACE CONDITION DETECTED! 
-            # Another user committed the exact same member_no between lines 25 and 33.
-            db.rollback()  # Clear the failed transaction state
-            attempts += 1  # Increment attempt counter and try again instantly
-            
+            # Race condition caught: another thread saved this number first.
+            # Rollback to clear transaction state and retry with an updated sequence lookahead.
+            db.rollback()
+            attempts += 1
+
     raise RuntimeError(
-        f"Failed to assign a unique member number after {max_retries} concurrent collision attempts."
+        "Failed to allocate a unique member number due to excessive concurrent registration traffic."
     )

@@ -6,7 +6,7 @@ from uuid import UUID
 
 class UserCreate(BaseModel):
     # Required DB Fields
-    organisation_id: UUID
+    
     role_id: UUID
     email: EmailStr
     first_name: str

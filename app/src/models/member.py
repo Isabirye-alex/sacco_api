@@ -211,9 +211,7 @@ class Member(TimestampMixin, Base):
 
     __tablename__ = "members"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
+    
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
@@ -221,7 +219,7 @@ class Member(TimestampMixin, Base):
     # lookup FKs — admin-managed, not hardcoded enums
     gender_id = Column(UUID(as_uuid=True), ForeignKey("genders.id"), nullable=False)
     status_id = Column(
-        UUID(as_uuid=True), ForeignKey("member_statuses.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("member_statuses.id"), nullable=True
     )
     marital_status_id = Column(
         UUID(as_uuid=True), ForeignKey("marital_statuses.id"), nullable=True
@@ -251,7 +249,6 @@ class Member(TimestampMixin, Base):
     exit_reason = Column(Text, nullable=True)
 
     # relationships
-    organisation = relationship("Organisation", back_populates="members", lazy="select")
     branch = relationship(
         "Branch", back_populates="members", lazy="joined", uselist=False
     )
@@ -276,7 +273,7 @@ class Member(TimestampMixin, Base):
     loans = relationship("Loan", back_populates="member", lazy="select")
 
     __table_args__ = (
-        UniqueConstraint("organisation_id", "member_no", name="uq_member_no_per_org"),
+        UniqueConstraint( "member_no", name="uq_member_no_per_org"),
     )
 
 

@@ -49,3 +49,7 @@ def create_branch(db: Session, branch: BranchCreate):
     db.commit()
     db.refresh(db_branch)
     return db_branch
+
+def get_branches(db:Session):
+    branch = db.query(Branch).all()
+    return branch

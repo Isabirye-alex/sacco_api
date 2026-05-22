@@ -91,14 +91,13 @@ class NextOfKinResponse(BaseModel):
 
 
 class MemberCreate(BaseModel):
-    organisation_id: UUID
     first_name: str
     middle_name: Optional[str] = None
     last_name: str
     email: Optional[EmailStr] = None
     branch_id: UUID
     gender_id: UUID
-    status_id: UUID
+    status_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
     member_no: Optional[str] = None
     date_of_birth: Optional[date] = None
@@ -125,9 +124,8 @@ class MemberResponse(BaseModel):
     email: Optional[EmailStr] = None
     branch_id: UUID
     gender_id: UUID
-    status_id: UUID
+    status_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
-    organisation_id: Optional[UUID] = None
     member_no: str
     date_of_birth: Optional[date] = None
     national_id: Optional[str] = None
@@ -171,7 +169,6 @@ class CombinedMemberResponse(BaseModel):
     exit_reason: Optional[str] = None
 
     # --- Foreign Key Identifiers ---
-    organisation_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
     branch_id: UUID
     gender_id: UUID

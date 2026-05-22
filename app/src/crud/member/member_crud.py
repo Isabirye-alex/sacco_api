@@ -80,10 +80,9 @@ def create_member(db: Session, member: MemberCreate) -> Member:
 
     while attempts < max_retries:
         # 1. Generate the next sequential number based on the database's current state
-        generated_no = get_next_sequential_number(db, member.organisation_id)
+        generated_no = get_next_sequential_number(db)
 
         db_member = Member(
-            organisation_id=member.organisation_id,
             member_no=generated_no,
             first_name=member.first_name,
             middle_name=member.middle_name,
@@ -91,11 +90,9 @@ def create_member(db: Session, member: MemberCreate) -> Member:
             email=member.email,
             branch_id=member.branch_id,
             gender_id=member.gender_id,
-            status_id=member.status_id,
             date_of_birth=member.date_of_birth,
             national_id=member.national_id,
             marital_status_id=member.marital_status_id,
-            photo_url=member.photo_url,
             phone_primary=member.phone_primary,
             phone_secondary=member.phone_secondary,
             country=member.country,
@@ -121,6 +118,7 @@ def create_member(db: Session, member: MemberCreate) -> Member:
         except IntegrityError as e:
             # The savepoint block automatically rolled back the failed insert state
             error_msg = str(e.orig).lower()
+            print(error_msg)
 
             # CASE A: Check if the collision was specifically due to the member number
             # Update 'uq_organisation_member_no' to match your actual database constraint name
@@ -142,7 +140,7 @@ def create_member(db: Session, member: MemberCreate) -> Member:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs.",
                 )
-
+            
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Database integrity violation occurred while saving member details.",

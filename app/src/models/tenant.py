@@ -44,7 +44,6 @@ class Organisation(TimestampMixin, Base):
 
     # relationships
     branches = relationship("Branch", back_populates="organisation", lazy="select")
-    members = relationship("Member", back_populates="organisation", lazy="dynamic")
 
 
 class Branch(TimestampMixin, Base):
