@@ -246,6 +246,7 @@ def get_current_member(db: Session, member_id: str):
             selectinload(Member.gender),
             selectinload(Member.marital_status),
             selectinload(Member.branch),
+            selectinload(Member.user),
         )
         .first()
     )

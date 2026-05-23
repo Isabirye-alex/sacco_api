@@ -19,6 +19,10 @@ from app.src.schemas.savings import (
     SavingsTransactionResponse,
 )
 from app.src.utils.auth import get_member_id_from_token
+from app.src.models import PaymentChannelConfiguration
+from pydantic import BaseModel
+
+
 
 router = APIRouter()
 
@@ -85,8 +89,8 @@ def deposit(
             tx.amount,
             tx.reference,
             tx.processed_by_id,
-            tx.account_id,
-            tx.account_id,
+            tx.payment_channel_code
+         
         )
     except Exception as e:
         raise HTTPException(
@@ -98,3 +102,17 @@ def deposit(
 @router.get("/transactions", response_model=list[SavingsTransactionResponse])
 def list_savings_transactions(db: Session = Depends(get_db)):
     return db.query(SavingsTransaction).all()
+
+
+# A simple response schema so the frontend knows what to look for
+class PaymentChannelResponse(BaseModel):
+    channel_code: str
+    channel_name: str
+
+    class Config:
+        from_attributes = True
+
+@router.get("/payment-channels", response_model=list[PaymentChannelResponse])
+def list_payment_channels(db: Session = Depends(get_db)):
+    """Fetch all active payment channels to populate the frontend dropdown."""
+    return db.query(PaymentChannelConfiguration).all()

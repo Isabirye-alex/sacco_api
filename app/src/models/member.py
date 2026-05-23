@@ -159,7 +159,7 @@ class User(TimestampMixin, Base):
     # one User → one Role  (uselist=False — FK is on User side, each user has one role)
     role = relationship("Role", back_populates="users", uselist=False, lazy="joined")
     # one User → one Member at most  (NULL for staff)
-    member = relationship("Member", back_populates="user", uselist=False, lazy="raise")
+    member = relationship("Member", back_populates="user", uselist=False, lazy="select")
 
     __table_args__ = (
         UniqueConstraint("email", name="uq_user_email_per_org"),
@@ -261,7 +261,7 @@ class Member(TimestampMixin, Base):
     marital_status = relationship(
         "MaritalStatus", back_populates="members", lazy="joined", uselist=False
     )
-    user = relationship("User", back_populates="member", lazy="raise", uselist=False)
+    user = relationship("User", back_populates="member", lazy="select", uselist=False)
     next_of_kin = relationship("NextOfKin", back_populates="member", lazy="select")
 
     savings_accounts = relationship(

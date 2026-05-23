@@ -8,6 +8,7 @@ from app.src.schemas.loans.loan_schema import LoanResponse
 from app.src.schemas.savings import SavingsAccountResponse
 from app.src.schemas.shares.share_schema import ShareAccountResponse
 from app.src.schemas.tenant.tenant_schema import BranchResponse
+from app.src.schemas.users.user_schema import UserBaseResponse, UserResponse
 
 
 class GenderCreate(BaseModel):
@@ -180,6 +181,7 @@ class CombinedMemberResponse(BaseModel):
     gender: Optional[GenderResponse] = None
     status: Optional[MemberStatusResponse] = None
     marital_status: Optional[MaritalStatusResponse] = None
+    user: Optional[UserBaseResponse] = None
 
     # --- Nested Collections (1-to-Many Relationships) ---
     next_of_kin: List[NextOfKinResponse] = []

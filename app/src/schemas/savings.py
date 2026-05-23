@@ -40,6 +40,7 @@ class SavingsTransactionDTO(BaseModel):
 
 
 class SavingsProductCreate(BaseModel):
+    organisation_id: UUID
     name: str
     code: str
     product_type: Optional[str] = "ORDINARY"
@@ -71,6 +72,7 @@ class SavingsProductResponse(BaseModel):
 
 
 class SavingsAccountCreate(BaseModel):
+  
     branch_id: UUID
     product_id: UUID
     account_no: Optional[str] = None
@@ -100,15 +102,17 @@ class SavingsAccountResponse(BaseModel):
 
 
 class SavingsTransactionCreate(BaseModel):
+
     account_id: UUID
     ledger_entry_id: Optional[UUID] = None
-    tx_type: Optional[str] = None
+    tx_type_id: Optional[UUID] = None  # UUID reference to savings_tx_types
     amount: float
     balance_after: Optional[float] = None
     reference: Optional[str] = None
     description: Optional[str] = None
     transaction_date: Optional[date] = None
     processed_by_id: Optional[UUID] = None
+    payment_channel_code: str
 
 
 class SavingsTransactionResponse(BaseModel):
@@ -117,7 +121,7 @@ class SavingsTransactionResponse(BaseModel):
     id: UUID
     account_id: UUID
     ledger_entry_id: Optional[UUID] = None
-    tx_type: str
+    tx_type_id: UUID  # UUID reference
     amount: float
     balance_after: float
     reference: Optional[str] = None

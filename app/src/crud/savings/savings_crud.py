@@ -21,6 +21,7 @@ from app.src.schemas.savings import (
 )
 from app.src.utils.generate_random_account_number import generate_unique_account_no
 
+
 def _resolve_savings_product_type_id(db: Session, code: str):
     valid_codes = {item["code"] for item in _SAVINGS_PRODUCT_TYPES}
     if code not in valid_codes:
@@ -86,10 +87,11 @@ def create_savings_product(db: Session, product: SavingsProductCreate):
 
 
 def create_savings_account(db: Session, account: SavingsAccountCreate):
-    
+
     account_number = generate_unique_account_no(db)
 
     db_account = SavingsAccount(
+        organisation_id=account.organisation_id,
         branch_id=account.branch_id,
         member_id=account.member_id,
         product_id=account.product_id,
@@ -116,11 +118,11 @@ def deposit(db: Session, tx: SavingsTransactionCreate):
         .with_for_update()
         .first()
     )
-    
+
     if not account:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Target savings account not found."
+            detail="Target savings account not found.",
         )
 
     # 2. Automatically compute the balance variables right here on the server
@@ -138,10 +140,8 @@ def deposit(db: Session, tx: SavingsTransactionCreate):
         ledger_entry_id=tx.ledger_entry_id,
         tx_type_id=tx_type_id,
         amount=tx.amount,
-        
-        #INJECT CALCULATED VALUE HERE
-        balance_after=calculated_balance_after, 
-        
+        # INJECT CALCULATED VALUE HERE
+        balance_after=calculated_balance_after,
         reference=tx.reference,
         description=tx.description or f"Deposit of UGX {tx.amount}",
         transaction_date=tx.transaction_date,
@@ -155,5 +155,5 @@ def deposit(db: Session, tx: SavingsTransactionCreate):
     # 6. Commit both updates safely inside a single database transaction block
     db.commit()
     db.refresh(db_tx)
-    
+
     return db_tx

@@ -21,6 +21,7 @@ from app.src.models.savings import (
     SavingsProductType,
     SavingsAccountStatus,
     SavingsTxType,
+    PaymentChannelConfiguration,
 )
 
 # Shares / Equity
@@ -75,6 +76,7 @@ __all__ = [
     "SavingsProductType",
     "SavingsAccountStatus",
     "SavingsTxType",
+    "PaymentChannelConfiguration",
     # shares
     "ShareProduct",
     "ShareAccount",

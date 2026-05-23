@@ -27,7 +27,7 @@ class UserSignIn(BaseModel):
     location_city: Optional[str] | None = None
 
 
-class UserResponse(BaseModel):
+class UserBaseResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     # Auth Data (for user Model)
@@ -35,6 +35,7 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     member_id: UUID
+    id: UUID
     
 class UserResponse(BaseModel):
     access_token: str

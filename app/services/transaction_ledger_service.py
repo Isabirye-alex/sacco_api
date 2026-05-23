@@ -4,18 +4,20 @@ from uuid import UUID
 from datetime import date
 from app.src.crud.savings.savings_crud import _resolve_savings_tx_type_id
 from app.src.models import SavingsAccount, SavingsTransaction, LedgerEntry, LedgerLine
+from app.src.models.ledger import DR_CR_CREDIT, DR_CR_DEBIT
+from app.src.models.savings import PaymentChannelConfiguration, SavingsProduct
+
 
 def execute_savings_deposit_with_ledger(
     db: Session,
     account_id: UUID,
     amount: float,
     reference: str,
-    member_id: UUID,
-    cash_gl_account_id: UUID,  # e.g., Cash in Vault GL UUID
-    savings_gl_account_id: UUID,  # e.g., Member Savings Control GL UUID
+    user_id: UUID,
+    payment_channel_code: str,
 ):
     try:
-        # 1. LOCK & UPDATE SAVINGS ACCOUNT
+        # 1. LOCK & LOCATE THE SAVINGS ACCOUNT
         account = (
             db.query(SavingsAccount)
             .filter(SavingsAccount.id == account_id)
@@ -25,9 +27,40 @@ def execute_savings_deposit_with_ledger(
         if not account:
             raise HTTPException(status_code=404, detail="Savings account not found")
 
+        # 2. AUTOMATICALLY RESOLVE CREDIT SIDE: Fetch the associated Product Config
+        product = (
+            db.query(SavingsProduct)
+            .filter(SavingsProduct.id == account.product_id)
+            .first()
+        )
+        if not product:
+            raise HTTPException(
+                status_code=404, detail="Associated savings product definition missing"
+            )
+
+        savings_gl_account_id = product.savings_control_account_id
+        if not savings_gl_account_id:
+            raise HTTPException(
+                status_code=500,
+                detail="Product misconfiguration: No control ledger linked to this product type.",
+            )
+
+        # 3. AUTOMATICALLY RESOLVE DEBIT SIDE: Fetch the asset account using the channel code
+        channel_config = (
+            db.query(PaymentChannelConfiguration)
+            .filter(PaymentChannelConfiguration.channel_code == payment_channel_code)
+            .first()
+        )
+        if not channel_config:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported or inactive payment option: {payment_channel_code}",
+            )
+        cash_gl_account_id = channel_config.asset_account_id
+
         balance_after = float(account.balance) + amount
 
-        # 2. CREATE THE LEDGER ENTRY HEADER
+        # 4. INITIALIZE BALANCE SHEET HEADER
         ledger_entry = LedgerEntry(
             branch_id=account.branch_id,
             entry_no=f"JV-{reference}-{date.today().strftime('%Y%m%d')}",
@@ -38,33 +71,34 @@ def execute_savings_deposit_with_ledger(
             total_debit=amount,
             total_credit=amount,
             status="POSTED",
-            created_by_id=member_id,
+            created_by_id=user_id,
         )
         db.add(ledger_entry)
         db.flush()
 
-        # 3. CREATE LEDGER LINE 1: DEBIT CASH (Asset up)
+        # 5. GENERATE DOUBLE-ENTRY LEDGER LINES
+        # Line A: DEBIT Cash/Asset Account (Increases Asset)
         cash_line = LedgerLine(
             entry_id=ledger_entry.id,
-            account_id=cash_gl_account_id,  
-            dr_cr="DR",  # 🚀 FIXED: Changed from "CREDIT" to "DR" to reflect an asset increase
+            account_id=cash_gl_account_id,
+            dr_cr=DR_CR_DEBIT,  # Uses your global "DEBIT" model constant string
             amount=amount,
-            description=f"Cash received for deposit on {account.account_no}",
+            description=f"Deposit via channel [{payment_channel_code}] into account {account.account_no}",
             member_id=account.member_id,
         )
 
-        # 4. CREATE LEDGER LINE 2: CREDIT SAVINGS CONTROL (Liability up)
+        # Line B: CREDIT Member Savings Liability Account (Increases Liability)
         savings_line = LedgerLine(
             entry_id=ledger_entry.id,
-            account_id=savings_gl_account_id,  
-            dr_cr="CR",  # 🚀 Note: Ensure your DB uses "DR"/"CR" pairs globally, not "DEBIT"/"CREDIT"
+            account_id=savings_gl_account_id,
+            dr_cr=DR_CR_CREDIT,  # Uses your global "CREDIT" model constant string
             amount=amount,
-            description=f"Savings provision for member account {account.account_no}",
+            description=f"Savings allocation for member account {account.account_no}",
             member_id=account.member_id,
         )
         db.add_all([cash_line, savings_line])
 
-        # 5. CREATE SAVINGS TRANSACTION LINKED TO THE LEDGER
+        # 6. LOG LOCAL TRANSACTIONS HISTORIES
         savings_tx = SavingsTransaction(
             account_id=account.id,
             ledger_entry_id=ledger_entry.id,
@@ -72,23 +106,27 @@ def execute_savings_deposit_with_ledger(
             amount=amount,
             balance_after=balance_after,
             reference=reference,
-            description=f"Cash Deposit via Ledger Entry {ledger_entry.entry_no}",
+            description=f"Deposit via Ledger Entry {ledger_entry.entry_no}",
             transaction_date=date.today(),
-            processed_by_id=member_id,
+            processed_by_id=user_id,
         )
         db.add(savings_tx)
 
+        # Apply structural mutations safely within block bounds
         account.balance = balance_after
 
-        # 6. ATOMIC TRANSACTION COMMIT
+        # 7. COMMIT ATOMIC CHANGES
         db.commit()
         db.refresh(savings_tx)
         return savings_tx
 
     except Exception as e:
-        db.rollback() 
-        print(f"Database Exception Logged: {str(e)}") # Useful for console debugging
+        print(e)
+        db.rollback()
+        if isinstance(e, HTTPException):
+            raise e
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Transaction processing aborted: {str(e)}",
+            detail=f"Transaction runtime aborted: {str(e)}",
         )

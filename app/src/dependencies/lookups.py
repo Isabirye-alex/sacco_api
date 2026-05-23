@@ -25,12 +25,14 @@ from app.src.models.ledger import (
     LedgerEntryType,
     LedgerDrCr,
     LedgerEntryStatus,
+    ChartOfAccount,
 )
 from app.src.models.savings import (
     SavingsProductType,
     SavingsAccountStatus,
     SavingsTxType,
     SavingsProduct,
+    PaymentChannelConfiguration,
 )
 from app.src.models.shares import (
     ShareProductType,
@@ -39,6 +41,7 @@ from app.src.models.shares import (
 )
 
 # Roles
+
 
 _LOAN_PRODUCTS = [
     {
@@ -288,7 +291,7 @@ _LOAN_PRODUCTS = [
         "loan_to_savings_ratio": 2.0,
         "loan_to_shares_ratio": 1.5,
         "min_guarantors": 1,
-    }
+    },
 ]
 
 _ROLES = [
@@ -591,6 +594,259 @@ _SAVINGS_PRODUCTS = [
 ]
 
 
+# Default Chart of Accounts
+# Note: These are templates to be seeded per-organization.
+# Set organisation_id when seeding to link to a specific org.
+_DEFAULT_CHART_OF_ACCOUNTS = [
+    # ========== ASSET ACCOUNTS ==========
+    # Cash Accounts
+    {
+        "name": "1000 - Cash in Vault",
+        "account_type": "ASSET",
+        "account_category": "CASH",
+        "description": "Physical cash held at office/branch.",
+        "is_system": True,
+    },
+    {
+        "name": "1100 - Cash at Bank",
+        "account_type": "ASSET",
+        "account_category": "BANK",
+        "description": "Cash deposits in bank accounts.",
+        "is_system": True,
+    },
+    {
+        "name": "1200 - Mobile Money Holdings",
+        "account_type": "ASSET",
+        "account_category": "MOBILE_MONEY",
+        "description": "Balance in mobile money merchant accounts.",
+        "is_system": True,
+    },
+    # Receivables
+    {
+        "name": "1300 - Loans Receivable",
+        "account_type": "ASSET",
+        "account_category": "LOANS_RECEIVABLE",
+        "description": "Outstanding member loans.",
+        "is_system": True,
+    },
+    {
+        "name": "1310 - Interest Receivable (Loans)",
+        "account_type": "ASSET",
+        "account_category": "INTEREST_RECEIVABLE",
+        "description": "Accrued interest on member loans.",
+        "is_system": True,
+    },
+    {
+        "name": "1400 - Fees Receivable",
+        "account_type": "ASSET",
+        "account_category": "LOANS_RECEIVABLE",
+        "description": "Outstanding fee charges.",
+        "is_system": True,
+    },
+    # Fixed Assets
+    {
+        "name": "1500 - Equipment",
+        "account_type": "ASSET",
+        "account_category": None,
+        "description": "Office equipment and fixtures.",
+        "is_system": True,
+    },
+    {
+        "name": "1510 - Accumulated Depreciation - Equipment",
+        "account_type": "ASSET",
+        "account_category": None,
+        "description": "Accumulated depreciation on equipment.",
+        "is_system": True,
+    },
+    # ========== LIABILITY ACCOUNTS ==========
+    # Member Deposits/Savings
+    {
+        "name": "2100 - Member Savings (Control)",
+        "account_type": "LIABILITY",
+        "account_category": "MEMBER_SAVINGS",
+        "description": "Total member savings liability - control account.",
+        "is_system": True,
+    },
+    {
+        "name": "2200 - Member Share Capital",
+        "account_type": "LIABILITY",
+        "account_category": "MEMBER_SHARES",
+        "description": "Member share contributions (equity-like but classified as liability).",
+        "is_system": True,
+    },
+    {
+        "name": "2300 - Dividends Payable",
+        "account_type": "LIABILITY",
+        "account_category": "DIVIDENDS_PAYABLE",
+        "description": "Accrued dividends awaiting payment.",
+        "is_system": True,
+    },
+    {
+        "name": "2400 - Interest Payable",
+        "account_type": "LIABILITY",
+        "account_category": None,
+        "description": "Interest accrued on member deposits.",
+        "is_system": True,
+    },
+    {
+        "name": "2500 - Loans Payable (Borrowed)",
+        "account_type": "LIABILITY",
+        "account_category": None,
+        "description": "Amounts borrowed by SACCO from external sources.",
+        "is_system": True,
+    },
+    {
+        "name": "2600 - Payroll Liabilities",
+        "account_type": "LIABILITY",
+        "account_category": None,
+        "description": "Accrued staff salaries and benefits payable.",
+        "is_system": True,
+    },
+    # ========== EQUITY ACCOUNTS ==========
+    {
+        "name": "3100 - Retained Earnings",
+        "account_type": "EQUITY",
+        "account_category": "RETAINED_EARNINGS",
+        "description": "Cumulative profits retained in the organisation.",
+        "is_system": True,
+    },
+    {
+        "name": "3200 - General Reserve",
+        "account_type": "EQUITY",
+        "account_category": "RESERVE_FUND",
+        "description": "Mandatory general reserve for regulatory compliance.",
+        "is_system": True,
+    },
+    {
+        "name": "3300 - Loan Loss Provision/Reserve",
+        "account_type": "EQUITY",
+        "account_category": "RESERVE_FUND",
+        "description": "Reserve for potential loan losses.",
+        "is_system": True,
+    },
+    {
+        "name": "3400 - Emergency Fund",
+        "account_type": "EQUITY",
+        "account_category": "RESERVE_FUND",
+        "description": "Emergency/liquidity reserve.",
+        "is_system": True,
+    },
+    # ========== INCOME ACCOUNTS ==========
+    {
+        "name": "4100 - Interest Income (Loans)",
+        "account_type": "INCOME",
+        "account_category": "INTEREST_INCOME",
+        "description": "Interest earned from member loans.",
+        "is_system": True,
+    },
+    {
+        "name": "4200 - Fee Income",
+        "account_type": "INCOME",
+        "account_category": "FEE_INCOME",
+        "description": "Fees charged for services (application, account, etc.).",
+        "is_system": True,
+    },
+    {
+        "name": "4300 - Penalty Income",
+        "account_type": "INCOME",
+        "account_category": "PENALTY_INCOME",
+        "description": "Late fees, penalty charges on loans/accounts.",
+        "is_system": True,
+    },
+    {
+        "name": "4400 - Dividend Income",
+        "account_type": "INCOME",
+        "account_category": None,
+        "description": "Dividends received from investments.",
+        "is_system": True,
+    },
+    {
+        "name": "4500 - Other Income",
+        "account_type": "INCOME",
+        "account_category": None,
+        "description": "Miscellaneous income sources.",
+        "is_system": True,
+    },
+    # ========== EXPENSE ACCOUNTS ==========
+    {
+        "name": "5100 - Staff Salaries & Benefits",
+        "account_type": "EXPENSE",
+        "account_category": "OPERATING_EXPENSE",
+        "description": "Staff compensation and benefits.",
+        "is_system": True,
+    },
+    {
+        "name": "5200 - Operating Expenses",
+        "account_type": "EXPENSE",
+        "account_category": "OPERATING_EXPENSE",
+        "description": "General office operations (utilities, rent, supplies).",
+        "is_system": True,
+    },
+    {
+        "name": "5300 - Interest Expense (Borrowed Funds)",
+        "account_type": "EXPENSE",
+        "account_category": "INTEREST_EXPENSE",
+        "description": "Interest paid on external borrowings.",
+        "is_system": True,
+    },
+    {
+        "name": "5400 - Depreciation Expense",
+        "account_type": "EXPENSE",
+        "account_category": "OPERATING_EXPENSE",
+        "description": "Depreciation on fixed assets.",
+        "is_system": True,
+    },
+    {
+        "name": "5500 - Loan Loss Provision Expense",
+        "account_type": "EXPENSE",
+        "account_category": "LOAN_LOSS_PROVISION",
+        "description": "Expense for building loan loss reserves.",
+        "is_system": True,
+    },
+    {
+        "name": "5600 - Audit & Compliance Fees",
+        "account_type": "EXPENSE",
+        "account_category": "OPERATING_EXPENSE",
+        "description": "External audit and compliance-related costs.",
+        "is_system": True,
+    },
+    {
+        "name": "5700 - Training & Development",
+        "account_type": "EXPENSE",
+        "account_category": "OPERATING_EXPENSE",
+        "description": "Staff training and development programs.",
+        "is_system": True,
+    },
+    {
+        "name": "5800 - Miscellaneous Expenses",
+        "account_type": "EXPENSE",
+        "account_category": "OPERATING_EXPENSE",
+        "description": "Other operating expenses.",
+        "is_system": True,
+    },
+]
+
+
+# Payment Channel Configurations
+_PAYMENT_CHANNELS = [
+    {
+        "channel_code": "CASH",
+        "channel_name": "Cash Payment",
+        "account_name": "1000 - Cash in Vault",
+    },
+    {
+        "channel_code": "BANK",
+        "channel_name": "Bank Transfer",
+        "account_name": "1100 - Cash at Bank",
+    },
+    {
+        "channel_code": "MOBILE_MONEY",
+        "channel_name": "Mobile Money",
+        "account_name": "1200 - Mobile Money Holdings",
+    },
+]
+
+
 # Seed functions
 
 
@@ -821,9 +1077,74 @@ def seed_dividend_statuses(db: Session) -> None:
     db.commit()
 
 
+def seed_default_chart_of_accounts(db: Session) -> None:
+    """
+    Seed default chart of accounts globally for the system.
+
+    This is idempotent - existing accounts won't be duplicated.
+    """
+    existing_names = {acc.name for acc in db.query(ChartOfAccount.name).all()}
+
+    any_new_items = False
+
+    for row in _DEFAULT_CHART_OF_ACCOUNTS:
+        if row["name"] in existing_names:
+            continue
+
+        db.add(ChartOfAccount(**row))
+        any_new_items = True
+
+    if any_new_items:
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
+
+def seed_payment_channels(db: Session) -> None:
+    """
+    Seed payment channel configurations globally for the system.
+
+    Maps user-friendly payment channels (CASH, BANK, MOBILE_MONEY)
+    to corresponding Chart of Accounts (asset accounts).
+
+    This is idempotent - existing channels won't be duplicated.
+    """
+    existing_codes = {
+        ch.channel_code
+        for ch in db.query(PaymentChannelConfiguration.channel_code).all()
+    }
+
+    for row in _PAYMENT_CHANNELS:
+        if row["channel_code"] in existing_codes:
+            continue
+
+        # Look up the corresponding chart of accounts by name
+        account = db.query(ChartOfAccount).filter_by(name=row["account_name"]).first()
+
+        if not account:
+            # Skip if account not found (shouldn't happen if chart seeded first)
+            continue
+
+        # Create the payment channel configuration
+        payment_channel = PaymentChannelConfiguration(
+            channel_code=row["channel_code"],
+            channel_name=row["channel_name"],
+            asset_account_id=account.id,
+        )
+        db.add(payment_channel)
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+
 def seed_lookups(db: Session) -> None:
     """
-    Convenience function — seeds all lookup tables in one call.
+    Convenience function — seeds all system-wide lookup tables in one call.
     Call this on application startup before anything else.
 
     Usage in main.py:
@@ -832,7 +1153,7 @@ def seed_lookups(db: Session) -> None:
             db = next(get_db())
             seed_lookups(db)
 
-    This also creates default savings product blueprints for any existing organisations.
+    This also creates default savings/loan products and chart of accounts.
     """
     seed_roles(db)
     seed_genders(db)
@@ -858,3 +1179,5 @@ def seed_lookups(db: Session) -> None:
     seed_dividend_statuses(db)
     seed_savings_products(db)
     seed_loan_products(db)
+    seed_default_chart_of_accounts(db)
+    seed_payment_channels(db)

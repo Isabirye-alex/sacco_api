@@ -99,6 +99,17 @@ class SavingsProduct(TimestampMixin, Base):
         lazy="joined",
         uselist=False,
     )
+    savings_control_account_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("chart_of_accounts.id"),
+        nullable=False,
+        default="6da13edb-1253-497f-95d2-2e6b272d168f",
+    )
+    interest_expense_account_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("chart_of_accounts.id"),
+        nullable=True,
+    )
 
 
 class SavingsAccount(TimestampMixin, Base):
@@ -172,7 +183,9 @@ class SavingsTransaction(TimestampMixin, Base):
     reference = Column(String(100), nullable=True)  # e.g. mobile money ref
     description = Column(Text, nullable=True)
     transaction_date = Column(Date, nullable=False)
-    processed_by_id = Column(UUID(as_uuid=True), ForeignKey("members.id"), nullable=True)
+    processed_by_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
 
     account = relationship("SavingsAccount", back_populates="transactions")
     tx_type_obj = relationship(
@@ -182,4 +195,22 @@ class SavingsTransaction(TimestampMixin, Base):
         uselist=False,
     )
     ledger_entry = relationship("LedgerEntry")
-    processed_by = relationship("Member")
+    processed_by = relationship("User")
+
+
+class PaymentChannelConfiguration(TimestampMixin, Base):
+    """
+    System-wide configuration mapping user-friendly channels (CASH, MPESA, BANK)
+    to actual ChartOfAccount asset endpoints.
+    """
+
+    __tablename__ = "payment_channel_configurations"
+
+    channel_code = Column(
+        String(50), primary_key=True, unique=True, index=True
+    )  # "CASH", "MOBILE_MONEY"
+    channel_name = Column(String(100), nullable=False)
+
+    asset_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=False
+    )

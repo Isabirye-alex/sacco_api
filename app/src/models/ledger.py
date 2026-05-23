@@ -98,9 +98,6 @@ class ChartOfAccount(TimestampMixin, Base):
 
     __tablename__ = "chart_of_accounts"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     name = Column(String(255), nullable=False, unique=True)
     account_type = Column(
         String(50),
@@ -149,7 +146,6 @@ class ChartOfAccount(TimestampMixin, Base):
         ):
             return DR_CR_DEBIT
         return DR_CR_CREDIT
-
 
 class LedgerEntry(TimestampMixin, Base):
     """
@@ -224,7 +220,6 @@ class LedgerLine(TimestampMixin, Base):
 
     __tablename__ = "ledger_lines"
 
-    
     entry_id = Column(
         UUID(as_uuid=True), ForeignKey("ledger_entries.id"), nullable=False, index=True
     )
@@ -268,9 +263,7 @@ class JournalEntry(TimestampMixin, Base):
 
     __tablename__ = "journal_entries"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
+    
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )

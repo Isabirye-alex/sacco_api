@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict
 
 
 class ChartOfAccountCreate(BaseModel):
-    organisation_id: UUID
     code: str
     name: str
     account_type: str
@@ -20,7 +19,6 @@ class ChartOfAccountResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
     code: str
     name: str
     account_type: str
@@ -31,7 +29,6 @@ class ChartOfAccountResponse(BaseModel):
 
 
 class LedgerEntryCreate(BaseModel):
-    organisation_id: UUID
     branch_id: UUID
     entry_no: str
     entry_type: str
@@ -50,7 +47,6 @@ class LedgerEntryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
     branch_id: UUID
     entry_no: str
     entry_type: str

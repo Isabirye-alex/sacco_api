@@ -65,7 +65,6 @@ def create_ledger_line(db: Session, line: LedgerLineCreate):
 
 def create_journal_entry(db: Session, journal: JournalEntryCreate):
     db_journal = JournalEntry(
-        organisation_id=journal.organisation_id,
         branch_id=journal.branch_id,
         ledger_entry_id=journal.ledger_entry_id,
         narration=journal.narration,
