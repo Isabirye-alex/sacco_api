@@ -103,6 +103,7 @@ class MemberCreate(BaseModel):
     date_of_birth: Optional[date] = None
     national_id: Optional[str] = None
     marital_status_id: Optional[UUID] = None
+    password: str
     photo_url: Optional[str] = None
     phone_primary: Optional[str] = None
     phone_secondary: Optional[str] = None

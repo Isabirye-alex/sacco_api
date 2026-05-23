@@ -1,4 +1,5 @@
 from datetime import date
+from app.src.schemas.users.user_schema import UserCreate
 from app.src.utils.generate_random_account_number import generate_unique_account_no
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select
@@ -12,6 +13,7 @@ from app.src.models.member import (
     MaritalStatus,
     Role,
     NextOfKin,
+    User
 )
 from app.src.models.savings import (
     SavingsAccount,
@@ -74,12 +76,11 @@ def _create_member_savings_account(db: Session, member: Member):
     return savings_account
 
 
-def create_member(db: Session, member: MemberCreate) -> Member:
+def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member:
     max_retries = 10
     attempts = 0
 
     while attempts < max_retries:
-        # 1. Generate the next sequential number based on the database's current state
         generated_no = get_next_sequential_number(db)
 
         db_member = Member(
@@ -95,12 +96,17 @@ def create_member(db: Session, member: MemberCreate) -> Member:
             marital_status_id=member.marital_status_id,
             phone_primary=member.phone_primary,
             phone_secondary=member.phone_secondary,
+            password=member.password,
             country=member.country,
             village=member.village,
             district=member.district,
             joined_date=member.joined_date or date.today(),
             exit_date=member.exit_date,
             exit_reason=member.exit_reason,
+        )
+
+        db_user = User(
+            
         )
 
         try:
