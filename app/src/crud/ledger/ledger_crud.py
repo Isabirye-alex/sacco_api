@@ -50,7 +50,6 @@ def create_ledger_entry(db: Session, entry: LedgerEntryCreate):
 
 def create_ledger_line(db: Session, line: LedgerLineCreate):
     db_line = LedgerLine(
-        organisation_id=line.organisation_id,
         entry_id=line.entry_id,
         account_id=line.account_id,
         dr_cr=line.dr_cr,

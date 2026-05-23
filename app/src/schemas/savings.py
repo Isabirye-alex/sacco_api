@@ -102,12 +102,12 @@ class SavingsAccountResponse(BaseModel):
 class SavingsTransactionCreate(BaseModel):
     account_id: UUID
     ledger_entry_id: Optional[UUID] = None
-    tx_type: str
+    tx_type: Optional[str] = None
     amount: float
-    balance_after: float
+    balance_after: Optional[float] = None
     reference: Optional[str] = None
     description: Optional[str] = None
-    transaction_date: date
+    transaction_date: Optional[date] = None
     processed_by_id: Optional[UUID] = None
 
 

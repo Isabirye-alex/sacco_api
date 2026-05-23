@@ -66,10 +66,10 @@ class LedgerEntryResponse(BaseModel):
 
 
 class LedgerLineCreate(BaseModel):
-    organisation_id: UUID
+
     entry_id: UUID
     account_id: UUID
-    dr_cr: str
+    dr_cr: Optional[str]=None
     amount: float
     description: Optional[str] = None
     member_id: Optional[UUID] = None
@@ -79,10 +79,9 @@ class LedgerLineResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
 
     id: UUID
-    organisation_id: UUID
     entry_id: UUID
     account_id: UUID
-    dr_cr: str
+    # dr_cr: Optional[str] = None
     amount: float
     description: Optional[str] = None
     member_id: Optional[UUID] = None

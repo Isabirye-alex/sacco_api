@@ -160,14 +160,11 @@ class LedgerEntry(TimestampMixin, Base):
 
     __tablename__ = "ledger_entries"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
 
-    entry_no = Column(String(50), nullable=False)  # sequential per org
+    entry_no = Column(String(50), nullable=False)
     entry_type = Column(
         String(50),
         ForeignKey("ledger_entry_types.code"),
@@ -227,9 +224,7 @@ class LedgerLine(TimestampMixin, Base):
 
     __tablename__ = "ledger_lines"
 
-    organisation_id = Column(
-        UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False, index=True
-    )
+    
     entry_id = Column(
         UUID(as_uuid=True), ForeignKey("ledger_entries.id"), nullable=False, index=True
     )

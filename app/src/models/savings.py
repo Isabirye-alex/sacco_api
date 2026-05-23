@@ -52,7 +52,9 @@ class SavingsTxType(TimestampMixin, Base):
         lazy="select",
     )
 
+
 # Models
+
 
 class SavingsProduct(TimestampMixin, Base):
     """
@@ -104,7 +106,6 @@ class SavingsAccount(TimestampMixin, Base):
 
     __tablename__ = "savings_accounts"
 
-    
     branch_id = Column(
         UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True
     )
@@ -130,8 +131,8 @@ class SavingsAccount(TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     # relationships
-    member = relationship("Member", back_populates="savings_accounts", lazy='select')
-    product = relationship("SavingsProduct", back_populates="accounts", lazy='select')
+    member = relationship("Member", back_populates="savings_accounts", lazy="select")
+    product = relationship("SavingsProduct", back_populates="accounts", lazy="select")
     status_obj = relationship(
         "SavingsAccountStatus",
         back_populates="accounts",
@@ -151,7 +152,6 @@ class SavingsTransaction(TimestampMixin, Base):
 
     __tablename__ = "savings_transactions"
 
-    
     account_id = Column(
         UUID(as_uuid=True),
         ForeignKey("savings_accounts.id"),
@@ -162,16 +162,17 @@ class SavingsTransaction(TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("ledger_entries.id"), nullable=True
     )
 
-    tx_type = Column(String(50), nullable=False)
+    # 1. Change field name to clarify it stores a UUID
     tx_type_id = Column(
-        UUID(as_uuid=True), ForeignKey("savings_tx_types.id"), nullable=True, index=True
+        UUID(as_uuid=True), ForeignKey("savings_tx_types.id"), nullable=False
     )
+    # 2. Update your relationship mapping to explicitly use the new key
     amount = Column(Numeric(18, 4), nullable=False)
     balance_after = Column(Numeric(18, 4), nullable=False)  # snapshot for quick reads
     reference = Column(String(100), nullable=True)  # e.g. mobile money ref
     description = Column(Text, nullable=True)
     transaction_date = Column(Date, nullable=False)
-    processed_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    processed_by_id = Column(UUID(as_uuid=True), ForeignKey("members.id"), nullable=True)
 
     account = relationship("SavingsAccount", back_populates="transactions")
     tx_type_obj = relationship(
@@ -181,4 +182,4 @@ class SavingsTransaction(TimestampMixin, Base):
         uselist=False,
     )
     ledger_entry = relationship("LedgerEntry")
-    processed_by = relationship("User")
+    processed_by = relationship("Member")

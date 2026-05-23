@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.services.transaction_ledger_service import execute_savings_deposit_with_ledger
 from app.src.config.database import get_db
 from app.src.crud.savings.savings_crud import (
+    _resolve_savings_tx_type_id,
     create_savings_product,
     create_savings_account,
-    create_savings_transaction,
+    deposit,
 )
 from app.src.models.savings import SavingsProduct, SavingsAccount, SavingsTransaction
 from app.src.schemas.savings import (
@@ -16,6 +18,7 @@ from app.src.schemas.savings import (
     SavingsTransactionCreate,
     SavingsTransactionResponse,
 )
+from app.src.utils.auth import get_member_id_from_token
 
 router = APIRouter()
 
@@ -41,6 +44,7 @@ def create_savings_product_endpoint(
 def list_savings_products(db: Session = Depends(get_db)):
     return db.query(SavingsProduct).all()
 
+
 # @router.post(
 #     "/accounts",
 #     response_model=SavingsAccountResponse,
@@ -64,15 +68,26 @@ def list_savings_accounts(db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/transactions",
+    "/deposit",
     response_model=SavingsTransactionResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_savings_transaction_endpoint(
-    tx: SavingsTransactionCreate, db: Session = Depends(get_db)
+def deposit(
+    tx: SavingsTransactionCreate,
+    db: Session = Depends(get_db),
+    member_id: str = Depends(get_member_id_from_token),
 ):
+
     try:
-        return create_savings_transaction(db, tx)
+        return execute_savings_deposit_with_ledger(
+            db,
+            tx.account_id,
+            tx.amount,
+            tx.reference,
+            tx.processed_by_id,
+            tx.account_id,
+            tx.account_id,
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

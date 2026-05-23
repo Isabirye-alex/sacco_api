@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.src.models.savings import (
@@ -106,23 +107,53 @@ def create_savings_account(db: Session, account: SavingsAccountCreate):
     return db_account
 
 
-def create_savings_transaction(db: Session, tx: SavingsTransactionCreate):
-    tx_type_id = _resolve_savings_tx_type_id(db, tx.tx_type)
+def deposit(db: Session, tx: SavingsTransactionCreate):
+    # 1. Fetch and Lock the user's savings account to ensure mathematical absolute accuracy
+    # 'with_for_update' forces other simultaneous API threads to wait their turn
+    account = (
+        db.query(SavingsAccount)
+        .filter(SavingsAccount.id == tx.account_id)
+        .with_for_update()
+        .first()
+    )
+    
+    if not account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target savings account not found."
+        )
 
+    # 2. Automatically compute the balance variables right here on the server
+    current_balance = account.balance
+    calculated_balance_after = current_balance + tx.amount
+
+    # 3. Resolve your configuration properties
+    tx_type_code = "DEPOSIT"
+    tx_type_id = _resolve_savings_tx_type_id(db, tx_type_code)
+
+    # 4. Create the historic audit entry
     db_tx = SavingsTransaction(
         organisation_id=tx.organisation_id,
         account_id=tx.account_id,
         ledger_entry_id=tx.ledger_entry_id,
-        tx_type=tx.tx_type,
         tx_type_id=tx_type_id,
         amount=tx.amount,
-        balance_after=tx.balance_after,
+        
+        #INJECT CALCULATED VALUE HERE
+        balance_after=calculated_balance_after, 
+        
         reference=tx.reference,
-        description=tx.description,
+        description=tx.description or f"Deposit of UGX {tx.amount}",
         transaction_date=tx.transaction_date,
         processed_by_id=tx.processed_by_id,
     )
     db.add(db_tx)
+
+    # 5. CRITICAL STEP: Update the actual running balance on the Savings Account row itself!
+    account.balance = calculated_balance_after
+
+    # 6. Commit both updates safely inside a single database transaction block
     db.commit()
     db.refresh(db_tx)
+    
     return db_tx
