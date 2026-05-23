@@ -40,6 +40,7 @@ from app.src.schemas.loans.loan_schema import (
     LoanPenaltyCreate,
     LoanPenaltyResponse,
 )
+from app.src.utils.auth import get_member_id_from_token
 
 router = APIRouter()
 
@@ -70,10 +71,11 @@ def list_loan_products(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_loan_application_endpoint(
-    application: LoanApplicationCreate, db: Session = Depends(get_db)
+    application: LoanApplicationCreate, db: Session = Depends(get_db), 
+    member_id: str = Depends(get_member_id_from_token)
 ):
     try:
-        return create_loan_application(db, application)
+        return create_loan_application(db, application, member_id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

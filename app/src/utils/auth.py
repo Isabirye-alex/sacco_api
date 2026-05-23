@@ -49,7 +49,6 @@ def get_member_id_from_token(credentials: HTTPAuthorizationCredentials = Depends
     """
     Decodes the incoming standard Authorization Bearer token and returns the member_id.
     """
-    # credentials.credentials automatically strips out the "Bearer " prefix for you
     token = credentials.credentials
     
     try:

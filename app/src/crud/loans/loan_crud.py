@@ -52,7 +52,7 @@ def create_loan_product(db: Session, product: LoanProductCreate):
     return db_product
 
 
-def create_loan_application(db: Session, application: LoanApplicationCreate):
+def create_loan_application(db: Session, application: LoanApplicationCreate, member_id: str):
     application_no = generate_unique_application_number()
     db_application = LoanApplication(
         branch_id=application.branch_id,
