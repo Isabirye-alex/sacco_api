@@ -13,7 +13,7 @@ from app.src.models.member import (
     MaritalStatus,
     Role,
     NextOfKin,
-    User
+    User,
 )
 from app.src.models.savings import (
     SavingsAccount,
@@ -77,6 +77,8 @@ def _create_member_savings_account(db: Session, member: Member):
 
 
 def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member:
+    from app.src.utils.auth import hash_password
+
     max_retries = 10
     attempts = 0
 
@@ -96,17 +98,12 @@ def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member
             marital_status_id=member.marital_status_id,
             phone_primary=member.phone_primary,
             phone_secondary=member.phone_secondary,
-            password=member.password,
             country=member.country,
             village=member.village,
             district=member.district,
             joined_date=member.joined_date or date.today(),
             exit_date=member.exit_date,
             exit_reason=member.exit_reason,
-        )
-
-        db_user = User(
-            
         )
 
         try:
@@ -116,6 +113,17 @@ def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member
                 db.flush()  # Populates db_member.id so savings account FK works
                 _create_member_savings_account(db, db_member)
 
+                # Create User record linked to the new member
+                db_user = User(
+                    member_id=db_member.id,
+                    email=user.email,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    phone=user.phone,
+                    hashed_password=hash_password(user.password),
+                )
+                db.add(db_user)
+                db.flush()
             # If everything inside the savepoint succeeded, commit it globally
             db.commit()
             db.refresh(db_member)
@@ -146,7 +154,7 @@ def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs.",
                 )
-            
+
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Database integrity violation occurred while saving member details.",
@@ -225,10 +233,10 @@ def create_next_of_kin(db: Session, kin: NextOfKinCreate):
     return db_kin
 
 
-def get_current_member(db: Session, user_id: str):
+def get_current_member(db: Session, member_id: str):
     current_user = (
         db.query(Member)
-        .filter(Member.id == user_id)
+        .filter(Member.id == member_id)
         .options(
             selectinload(Member.savings_accounts),
             selectinload(Member.share_accounts),
@@ -237,8 +245,8 @@ def get_current_member(db: Session, user_id: str):
             selectinload(Member.marital_status),
             selectinload(Member.gender),
             selectinload(Member.marital_status),
-            selectinload(Member.branch)
-
-        ).first()
+            selectinload(Member.branch),
+        )
+        .first()
     )
     return current_user

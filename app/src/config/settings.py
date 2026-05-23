@@ -1,4 +1,3 @@
-import psycopg2
 from pydantic_settings import BaseSettings
 
 

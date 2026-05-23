@@ -34,6 +34,8 @@ from app.src.schemas.member.member_schema import (
     NextOfKinCreate,
     NextOfKinResponse,
 )
+from app.src.schemas.users.user_schema import UserCreate
+from app.src.utils.auth import get_member_id_from_token
 
 router = APIRouter()
 
@@ -43,9 +45,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)
-def create_member_endpoint(member: MemberCreate, db: Session = Depends(get_db)):
+def create_member_endpoint(member: MemberCreate,user: UserCreate ,db: Session = Depends(get_db)):
     try:
-        return create_member(db, member)
+        return create_member(db, member, user)
 
     except HTTPException as http_ex:
         raise http_ex
@@ -160,9 +162,25 @@ def create_next_of_kin_endpoint(kin: NextOfKinCreate, db: Session = Depends(get_
 def list_next_of_kin(db: Session = Depends(get_db)):
     return db.query(NextOfKin).all()
 
-@router.get('/member/{user_id}', response_model=CombinedMemberResponse, status_code=status.HTTP_200_OK)
-def get_member_data(user_id: str,db:Session=Depends(get_db)):
+
+@router.get('/member/', response_model=CombinedMemberResponse, status_code=status.HTTP_200_OK)
+def get_member_data(
+    db: Session = Depends(get_db), 
+    member_id: str = Depends(get_member_id_from_token) # Token is decoded automatically right here!
+):
     try:
-        return get_current_member(db, user_id)  
+        member_data = get_current_member(db, member_id)
+        if not member_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="Member profile not found"
+            )
+        return member_data
+        
+    except HTTPException:
+        raise  
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'Error str{e}')
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail=f"Database error: {str(e)}"
+        )

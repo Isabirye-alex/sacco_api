@@ -118,8 +118,8 @@ class User(TimestampMixin, Base):
 
     __tablename__ = "users"
 
-    role_id = Column(
-        UUID(as_uuid=True), ForeignKey("roles.id", ondelete="RESTRICT"), nullable=True
+    role_name = Column(
+        String(15), ForeignKey("roles.role", ondelete="RESTRICT"), nullable=True, default='MEMBER', unique=True
     )
 
     user_type = Column(

@@ -10,10 +10,10 @@ def get_login_logs(db: Session) -> List[LoginLogs]:
     return db.query(LoginLogs).order_by(LoginLogs.login_at.desc()).all()
 
 
-def get_login_logs_by_user(db: Session, user_id: UUID) -> List[LoginLogs]:
+def get_login_logs_by_user(db: Session, member_id: UUID) -> List[LoginLogs]:
     return (
         db.query(LoginLogs)
-        .filter(LoginLogs.user_id == user_id)
+        .filter(LoginLogs.member_id == member_id)
         .order_by(LoginLogs.login_at.desc())
         .all()
     )

@@ -1,6 +1,20 @@
-import os
 import hashlib
 import secrets
+from datetime import datetime, timedelta, timezone
+from fastapi import Depends, HTTPException, Header, status
+import jwt
+from app.src.config.settings import settings
+
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.src.config.settings import settings
+
+# This tells FastAPI to expect standard 'Authorization: Bearer <token>' headers
+security = HTTPBearer()
+
+
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def hash_password(password: str) -> str:
@@ -20,3 +34,47 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
     dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000)
     return secrets.compare_digest(dk.hex(), hexhash)
+
+
+
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def get_member_id_from_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """
+    Decodes the incoming standard Authorization Bearer token and returns the member_id.
+    """
+    # credentials.credentials automatically strips out the "Bearer " prefix for you
+    token = credentials.credentials
+    
+    try:
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM]
+        )
+        
+        member_id: str = payload.get("sub")
+        if not member_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload: missing member ID"
+            )
+            
+        return member_id
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired. Please log in again."
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token."
+        )
