@@ -105,7 +105,7 @@ class SavingsTransactionCreate(BaseModel):
 
     account_id: UUID
     ledger_entry_id: Optional[UUID] = None
-    tx_type_id: Optional[UUID] = None  # UUID reference to savings_tx_types
+    tx_type_id: Optional[UUID] = None  
     amount: float
     balance_after: Optional[float] = None
     reference: Optional[str] = None

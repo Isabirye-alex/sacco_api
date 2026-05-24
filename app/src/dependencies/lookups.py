@@ -1145,7 +1145,7 @@ def seed_payment_channels(db: Session) -> None:
 def seed_lookups(db: Session) -> None:
     """
     Convenience function — seeds all system-wide lookup tables in one call.
-    Call this on application startup before anything else.
+    This is called on application startup before anything else.
 
     Usage in main.py:
         @app.on_event("startup")

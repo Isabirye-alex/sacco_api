@@ -8,6 +8,9 @@ from app.src.api.endpoints.savings import router as savings_route
 from app.src.api.endpoints.shares import router as shares_route
 from app.src.api.endpoints.ledger import router as ledger_route
 from app.src.api.endpoints.loans import router as loans_route
+from app.src.api.endpoints.loans_extended import router as loans_extended_route
+from app.src.api.endpoints.shares_extended import router as shares_extended_route
+from app.src.api.endpoints.mobile_money import router as mobile_money_route
 
 api_router = APIRouter()
 
@@ -18,5 +21,14 @@ api_router.include_router(org_router, prefix="/organisation", tags=["organisatio
 api_router.include_router(member_route, prefix="/members", tags=["members"])
 api_router.include_router(savings_route, prefix="/savings", tags=["savings"])
 api_router.include_router(shares_route, prefix="/shares", tags=["shares"])
+api_router.include_router(
+    shares_extended_route, prefix="/shares-extended", tags=["shares"]
+)
 api_router.include_router(ledger_route, prefix="/ledger", tags=["ledger"])
 api_router.include_router(loans_route, prefix="/loans", tags=["loans"])
+api_router.include_router(
+    loans_extended_route, prefix="/loans-extended", tags=["loans"]
+)
+api_router.include_router(
+    mobile_money_route, prefix="/mobile-money", tags=["mobile-money"]
+)

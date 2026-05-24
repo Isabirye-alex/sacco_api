@@ -26,6 +26,12 @@ class LoanProductCreate(BaseModel):
     processing_fee_pct: Optional[float] = 1.0
     is_active: Optional[bool] = True
 
+    # Ledger account links for posting
+    loan_receivable_account_id: Optional[UUID] = None
+    interest_income_account_id: Optional[UUID] = None
+    penalty_income_account_id: Optional[UUID] = None
+    processing_fee_account_id: Optional[UUID] = None
+
 
 class LoanProductResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, validate_by_name=True)
@@ -50,6 +56,12 @@ class LoanProductResponse(BaseModel):
     penalty_rate_per_day: float
     processing_fee_pct: float
     is_active: bool
+
+    # Ledger account links for posting
+    loan_receivable_account_id: Optional[UUID] = None
+    interest_income_account_id: Optional[UUID] = None
+    penalty_income_account_id: Optional[UUID] = None
+    processing_fee_account_id: Optional[UUID] = None
 
 
 class LoanApplicationCreate(BaseModel):

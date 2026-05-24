@@ -130,7 +130,6 @@ class LoanProduct(TimestampMixin, Base):
 
     __tablename__ = "loan_products"
 
-    
     name = Column(String(255), nullable=False)
     code = Column(String(20), nullable=False, unique=True)
     description = Column(Text, nullable=True)
@@ -180,10 +179,25 @@ class LoanProduct(TimestampMixin, Base):
     )  # % of loan amount
     is_active = Column(Boolean, default=True, nullable=False)
 
+    # Ledger account links for posting
+    loan_receivable_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+    interest_income_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+    penalty_income_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+    processing_fee_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+
     applications = relationship(
         "LoanApplication", back_populates="product", lazy="select"
     )
     loans = relationship("Loan", back_populates="product", lazy="select")
+
 
 class LoanApplication(TimestampMixin, Base):
     """Loan application — created before disbursement."""

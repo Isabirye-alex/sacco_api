@@ -91,6 +91,17 @@ class ShareProduct(TimestampMixin, Base):
     is_redeemable = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
+    # Ledger account links for posting
+    share_capital_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+    dividend_expense_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+    dividend_payable_account_id = Column(
+        UUID(as_uuid=True), ForeignKey("chart_of_accounts.id"), nullable=True
+    )
+
     accounts = relationship("ShareAccount", back_populates="product", lazy="select")
     dividends = relationship("Dividend", back_populates="product", lazy="select")
 
@@ -212,9 +223,7 @@ class Dividend(TimestampMixin, Base):
     notes = Column(Text, nullable=True)
 
     product = relationship("ShareProduct", back_populates="dividends")
-    payments = relationship(
-        "DividendPayment", back_populates="dividend", lazy="select"
-    )
+    payments = relationship("DividendPayment", back_populates="dividend", lazy="select")
 
 
 class DividendPayment(TimestampMixin, Base):

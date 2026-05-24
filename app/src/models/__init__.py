@@ -3,7 +3,7 @@ from app.src.models.base_file import Base, TimestampMixin  # noqa: F401
 # Multi-tenancy
 from app.src.models.tenant import Organisation, Branch  # noqa: F401
 
-# Members & Auth 
+# Members & Auth
 from app.src.models.member import (
     MaritalStatus,
     MemberStatus,
@@ -13,7 +13,7 @@ from app.src.models.member import (
     Role,
 )
 
-# Savings 
+# Savings
 from app.src.models.savings import (
     SavingsProduct,
     SavingsAccount,
@@ -52,6 +52,9 @@ from app.src.models.ledger import (  # noqa: F401
     LedgerLine,
     JournalEntry,
 )
+
+# Mobile Money
+from app.src.models.mobile_money import MobileMoneyTransaction  # noqa: F401
 
 # Users & Auth (existing)
 from app.src.models.users.login_logs import LoginLogs  # noqa: F401
