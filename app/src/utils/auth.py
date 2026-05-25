@@ -36,7 +36,6 @@ def verify_password(password: str, hashed: str) -> bool:
     return secrets.compare_digest(dk.hex(), hexhash)
 
 
-
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -45,35 +44,35 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-def get_member_id_from_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+def get_member_id_from_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
     """
     Decodes the incoming standard Authorization Bearer token and returns the member_id.
     """
     token = credentials.credentials
-    
+
     try:
         payload = jwt.decode(
-            token, 
-            settings.SECRET_KEY, 
-            algorithms=[settings.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        
+
         member_id: str = payload.get("sub")
         if not member_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload: missing member ID"
+                detail="Invalid token payload: missing member ID",
             )
-            
+
         return member_id
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session expired. Please log in again."
+            detail="Session expired. Please log in again.",
         )
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token."
+            detail="Invalid authentication token.",
         )

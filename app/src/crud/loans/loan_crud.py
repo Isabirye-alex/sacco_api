@@ -22,7 +22,6 @@ from app.src.schemas.loans.loan_schema import (
     LoanRepaymentCreate,
     LoanPenaltyCreate,
 )
-from app.src.utils import generate_unique_application_no
 
 
 def create_loan_product(db: Session, product: LoanProductCreate):

@@ -18,7 +18,7 @@ from app.src.crud.savings.transaction_crud import (
     get_savings_transactions,
     get_account_balance,
 )
-from app.src.models.savings import SavingsProduct, SavingsAccount
+from app.src.models.savings import SavingsProduct, SavingsAccount, SavingsTransaction
 from app.src.models import Member
 from app.src.schemas.savings import (
     SavingsProductCreate,
