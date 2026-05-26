@@ -7,7 +7,7 @@ from alembic import context
 
 # Import all models via the package init to register them on Base.metadata.
 # This includes: users, member, shares, savings, ledger, tenant, and accounts/transactions.
-from app.src.models import * 
+from app.src.models import *
 
 from app.src.models.base_file import Base
 
@@ -37,7 +37,7 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
 
-    connectable = create_engine(settings.DATABASE_URL, poolclass=pool.NullPool)
+    connectable = create_engine(settings.ONLINE_DATABASE_URL, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
