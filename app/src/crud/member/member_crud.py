@@ -28,7 +28,7 @@ from app.src.schemas.member.member_schema import (
     RoleCreate,
     NextOfKinCreate,
 )
-from app.src.utils.generate_random_member_no import get_next_sequential_number
+from app.src.utils.generate_random_member_no import register_member_safely
 
 
 def _resolve_savings_account_status_id(db: Session, code: str = "ACTIVE"):
@@ -83,7 +83,7 @@ def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member
     attempts = 0
 
     while attempts < max_retries:
-        generated_no = get_next_sequential_number(db)
+        generated_no = register_member_safely(db, member.dict())
 
         db_member = Member(
             member_no=generated_no,
