@@ -103,7 +103,7 @@ class SavingsProduct(TimestampMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("chart_of_accounts.id"),
         nullable=False,
-        default="6da13edb-1253-497f-95d2-2e6b272d168f",
+        default="2bb25de6-5710-4595-8047-9cc769229645",
     )
     interest_expense_account_id = Column(
         UUID(as_uuid=True),
