@@ -44,6 +44,36 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
+def get_user_id_from_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
+    """
+    Decodes the token and returns the user_id (stored in 'sub').
+    """
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        user_id: str = payload.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload: missing User ID",
+            )
+        return user_id
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired. Please log in again.",
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token.",
+        )
+
+
 def get_member_id_from_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> str:
@@ -57,7 +87,7 @@ def get_member_id_from_token(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
 
-        member_id: str = payload.get("sub")
+        member_id: str = payload.get("member_id")
         if not member_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

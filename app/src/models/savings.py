@@ -176,6 +176,7 @@ class SavingsTransaction(TimestampMixin, Base):
     tx_type_id = Column(
         UUID(as_uuid=True), ForeignKey("savings_tx_types.id"), nullable=False
     )
+    member_id = Column(UUID(as_uuid=True), ForeignKey("members.id"), nullable=True)
     # 2. Update your relationship mapping to explicitly use the new key
     amount = Column(Numeric(18, 4), nullable=False)
     balance_after = Column(Numeric(18, 4), nullable=False)  # snapshot for quick reads
@@ -183,7 +184,7 @@ class SavingsTransaction(TimestampMixin, Base):
     description = Column(Text, nullable=True)
     transaction_date = Column(Date, nullable=False)
     processed_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-
+    member = relationship("Member", back_populates="transactions")
     account = relationship("SavingsAccount", back_populates="transactions")
     tx_type_obj = relationship(
         "SavingsTxType",

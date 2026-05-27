@@ -33,7 +33,7 @@ from app.src.schemas.transaction_schemas import (
     FundTransferRequest,
     TransactionResponse,
 )
-from app.src.utils.auth import get_member_id_from_token
+from app.src.utils.auth import get_member_id_from_token, get_user_id_from_token
 from app.src.models import PaymentChannelConfiguration
 from pydantic import BaseModel
 
@@ -75,6 +75,7 @@ def list_savings_accounts(db: Session = Depends(get_db)):
 def deposit_endpoint(
     tx: SavingsTransactionCreate,
     db: Session = Depends(get_db),
+    user_id: str = Depends(get_user_id_from_token),
     member_id: str = Depends(get_member_id_from_token),
 ):
     try:
@@ -83,7 +84,7 @@ def deposit_endpoint(
             tx.account_id,
             tx.amount,
             tx.reference,
-            tx.processed_by_id,
+            user_id,
             tx.payment_channel_code,
         )
 
@@ -126,6 +127,7 @@ def deposit_endpoint(
 def withdraw_endpoint(
     withdrawal: SavingsWithdrawalRequest,
     db: Session = Depends(get_db),
+    user_id: str = Depends(get_user_id_from_token),
     member_id: str = Depends(get_member_id_from_token),
 ):
     try:

@@ -271,6 +271,7 @@ class Member(TimestampMixin, Base):
         "ShareAccount", back_populates="member", lazy="select"
     )
     loans = relationship("Loan", back_populates="member", lazy="select")
+    transactions = relationship("SavingsTransaction", back_populates="member", lazy="select")
 
     __table_args__ = (
         UniqueConstraint( "member_no", name="uq_member_no_per_org"),

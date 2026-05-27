@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 from app.src.schemas.loans.loan_schema import LoanResponse
-from app.src.schemas.savings import SavingsAccountResponse
+from app.src.schemas.savings import SavingsAccountResponse, SavingsTransactionResponse
 from app.src.schemas.shares.share_schema import ShareAccountResponse
 from app.src.schemas.tenant.tenant_schema import BranchResponse
 from app.src.schemas.users.user_schema import UserBaseResponse, UserResponse
@@ -188,3 +188,4 @@ class CombinedMemberResponse(BaseModel):
     savings_accounts: List[SavingsAccountResponse] = []
     share_accounts: List[ShareAccountResponse] = []
     loans: List[LoanResponse] = []
+    transactions: List[SavingsTransactionResponse] = []

@@ -11,6 +11,7 @@ from app.src.models import (
     SavingsAccount,
     LedgerEntry,
     LedgerLine,
+    User,
 )
 from app.src.models.ledger import DR_CR_CREDIT, DR_CR_DEBIT
 from app.src.models.loans import LoanStatus, LoanApplicationStatus
@@ -73,6 +74,16 @@ def approve_loan_application_with_ledger(
     This also creates ledger entries if disbursement is immediate.
     """
     try:
+        # Resolve User ID
+        user = (
+            db.query(User)
+            .filter((User.id == user_id) | (User.member_id == user_id))
+            .first()
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        actual_user_id = user.id
+
         # 1. FETCH & LOCK THE APPLICATION
         application = (
             db.query(LoanApplication)
@@ -101,7 +112,7 @@ def approve_loan_application_with_ledger(
         application.status = "APPROVED"
         application.approved_amount = Decimal(str(approved_amount))
         application.approved_date = datetime.now()
-        application.approved_by_id = user_id
+        application.approved_by_id = actual_user_id
         db.add(application)
         db.flush()
 
@@ -123,8 +134,8 @@ def approve_loan_application_with_ledger(
             disbursal_date=date.today(),
             maturity_date=date.today()
             + timedelta(days=application.proposed_term_months * 30),
-            approved_by_id=user_id,
-            created_by_id=user_id,
+            approved_by_id=actual_user_id,
+            created_by_id=actual_user_id,
         )
         db.add(loan)
         db.flush()
@@ -170,6 +181,16 @@ def process_loan_repayment_with_ledger(
     """
     try:
         from app.src.models import PaymentChannelConfiguration
+
+        # Resolve User ID
+        user = (
+            db.query(User)
+            .filter((User.id == user_id) | (User.member_id == user_id))
+            .first()
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        actual_user_id = user.id
 
         # 1. LOCK & FETCH LOAN
         loan = (
@@ -220,7 +241,7 @@ def process_loan_repayment_with_ledger(
             total_debit=amount,
             total_credit=amount,
             status="POSTED",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(ledger_entry)
         db.flush()
@@ -271,7 +292,7 @@ def process_loan_repayment_with_ledger(
             payment_date=date.today(),
             reference=reference,
             payment_channel_code=payment_channel_code,
-            processed_by_id=user_id,
+            processed_by_id=actual_user_id,
             ledger_entry_id=ledger_entry.id,
         )
         db.add(repayment)
@@ -300,6 +321,16 @@ def apply_late_payment_penalty(
 ):
     """Apply penalty for late loan payment."""
     try:
+        # Resolve User ID
+        user = (
+            db.query(User)
+            .filter((User.id == user_id) | (User.member_id == user_id))
+            .first()
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        actual_user_id = user.id
+
         loan = (
             db.query(Loan).filter(Loan.id == loan_id).with_for_update(of=Loan).first()
         )
@@ -323,7 +354,7 @@ def apply_late_payment_penalty(
             total_debit=penalty_amount,
             total_credit=penalty_amount,
             status="POSTED",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(ledger_entry)
         db.flush()

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from datetime import date
 from app.src.crud.savings.savings_crud import _resolve_savings_tx_type_id
-from app.src.models import SavingsAccount, SavingsTransaction, LedgerEntry, LedgerLine
+from app.src.models import SavingsAccount, SavingsTransaction, LedgerEntry, LedgerLine, User
 from app.src.models.ledger import DR_CR_CREDIT, DR_CR_DEBIT
 from app.src.models.savings import PaymentChannelConfiguration, SavingsProduct
 
@@ -17,6 +17,13 @@ def execute_savings_deposit_with_ledger(
     payment_channel_code: str,
 ):
     try:
+        # Resolve actual User ID (the input user_id from token is likely a member_id)
+        user = db.query(User).filter((User.id == user_id) | (User.member_id == user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        actual_user_id = user.id
+
         # 1. LOCK & LOCATE THE SAVINGS ACCOUNT
         account = (
             db.query(SavingsAccount)
@@ -71,7 +78,7 @@ def execute_savings_deposit_with_ledger(
             total_debit=amount,
             total_credit=amount,
             status="POSTED",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(ledger_entry)
         db.flush()
@@ -135,6 +142,13 @@ def execute_savings_withdrawal_with_ledger(
 ):
     """Withdrawal from savings account with double-entry ledger posting."""
     try:
+        # Resolve actual User ID
+        user = db.query(User).filter((User.id == user_id) | (User.member_id == user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        actual_user_id = user.id
+
         # 1. LOCK & LOCATE THE SAVINGS ACCOUNT
         account = (
             db.query(SavingsAccount)
@@ -196,7 +210,7 @@ def execute_savings_withdrawal_with_ledger(
             total_debit=amount,
             total_credit=amount,
             status="POSTED",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(ledger_entry)
         db.flush()
@@ -247,6 +261,7 @@ def execute_savings_withdrawal_with_ledger(
 
     except Exception as e:
         db.rollback()
+        print(e)
         raise e
 
 
@@ -260,6 +275,13 @@ def execute_fund_transfer_with_ledger(
 ):
     """Transfer funds from one savings account to another with ledger posting."""
     try:
+        # Resolve actual User ID
+        user = db.query(User).filter((User.id == user_id) | (User.member_id == user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        actual_user_id = user.id
+
         # 1. LOCK & LOCATE BOTH ACCOUNTS
         from_account = (
             db.query(SavingsAccount)
@@ -308,7 +330,7 @@ def execute_fund_transfer_with_ledger(
             total_debit=amount,
             total_credit=amount,
             status="POSTED",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(ledger_entry)
         db.flush()
@@ -374,36 +396,3 @@ def execute_fund_transfer_with_ledger(
     except Exception as e:
         db.rollback()
         raise e
-
-        # 6. LOG LOCAL TRANSACTIONS HISTORIES
-        savings_tx = SavingsTransaction(
-            account_id=account.id,
-            ledger_entry_id=ledger_entry.id,
-            tx_type_id=_resolve_savings_tx_type_id(db, "DEPOSIT"),
-            amount=amount,
-            balance_after=balance_after,
-            reference=reference,
-            description=f"Deposit via Ledger Entry {ledger_entry.entry_no}",
-            transaction_date=date.today(),
-            processed_by_id=user_id,
-        )
-        db.add(savings_tx)
-
-        # Apply structural mutations safely within block bounds
-        account.balance = balance_after
-
-        # 7. COMMIT ATOMIC CHANGES
-        db.commit()
-        db.refresh(savings_tx)
-        return savings_tx
-
-    except Exception as e:
-        print(e)
-        db.rollback()
-        if isinstance(e, HTTPException):
-            raise e
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Transaction runtime aborted: {str(e)}",
-        )

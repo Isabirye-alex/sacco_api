@@ -10,6 +10,7 @@ from app.src.models import (
     DividendPayment,
     LedgerEntry,
     LedgerLine,
+    User,
 )
 from app.src.models.ledger import DR_CR_CREDIT, DR_CR_DEBIT
 
@@ -30,6 +31,16 @@ def purchase_shares_with_ledger(
     """
     try:
         from app.src.models import ShareProduct, PaymentChannelConfiguration
+
+        # Resolve User ID
+        user = (
+            db.query(User)
+            .filter((User.id == user_id) | (User.member_id == user_id))
+            .first()
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        actual_user_id = user.id
 
         # 1. FETCH SHARE PRODUCT
         product = db.query(ShareProduct).filter(ShareProduct.id == product_id).first()
@@ -99,7 +110,7 @@ def purchase_shares_with_ledger(
             total_debit=total_amount,
             total_credit=total_amount,
             status="POSTED",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(ledger_entry)
         db.flush()
@@ -140,7 +151,7 @@ def purchase_shares_with_ledger(
             reference=reference,
             description=f"Purchase of {num_shares} shares",
             transaction_date=date.today(),
-            processed_by_id=user_id,
+            processed_by_id=actual_user_id,
             ledger_entry_id=ledger_entry.id,
         )
         db.add(share_transaction)
@@ -167,6 +178,16 @@ def calculate_and_distribute_dividends(
     Calculate and distribute dividends to all share holders for a declared dividend.
     """
     try:
+        # Resolve User ID
+        user = (
+            db.query(User)
+            .filter((User.id == user_id) | (User.member_id == user_id))
+            .first()
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        actual_user_id = user.id
+
         # 1. FETCH DIVIDEND
         dividend = db.query(Dividend).filter(Dividend.id == dividend_id).first()
         if not dividend:
@@ -215,7 +236,7 @@ def calculate_and_distribute_dividends(
                 total_debit=payment_amount,
                 total_credit=payment_amount,
                 status="POSTED",
-                created_by_id=user_id,
+                created_by_id=actual_user_id,
             )
             db.add(ledger_entry)
             db.flush()
@@ -290,6 +311,16 @@ def declare_dividend(
     try:
         from app.src.models import Organisation
 
+        # Resolve User ID
+        user = (
+            db.query(User)
+            .filter((User.id == user_id) | (User.member_id == user_id))
+            .first()
+        )
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        actual_user_id = user.id
+
         # Get product to get organisation_id
         product = db.query(ShareProduct).filter(ShareProduct.id == product_id).first()
         if not product:
@@ -317,7 +348,7 @@ def declare_dividend(
             rate_percent=rate_percent,
             total_amount=Decimal(str(total_amount)),
             status="DRAFT",
-            created_by_id=user_id,
+            created_by_id=actual_user_id,
         )
         db.add(dividend)
         db.commit()
