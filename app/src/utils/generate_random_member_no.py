@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.src.models.member import Member
 
 
-def register_member_safely(db: Session, member_data: dict) -> Member:
+def register_member_safely(db: Session) -> Member:
     """
     Creates a member tracking a global sequential sequence.
     Uses PostgreSQL sequences for atomic, high-performance ID allocation.
@@ -19,8 +19,4 @@ def register_member_safely(db: Session, member_data: dict) -> Member:
     next_val = db.execute(query).scalar()
     assigned_no = f"{next_val:06d}"
 
-    new_member = Member(member_no=assigned_no, **member_data)
-    db.add(new_member)
-    db.commit()
-    db.refresh(new_member)
-    return new_member
+    return assigned_no

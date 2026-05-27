@@ -83,7 +83,7 @@ def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member
     attempts = 0
 
     while attempts < max_retries:
-        generated_no = register_member_safely(db, member.dict())
+        generated_no = register_member_safely(db)
 
         db_member = Member(
             member_no=generated_no,

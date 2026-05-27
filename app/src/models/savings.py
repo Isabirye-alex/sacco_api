@@ -103,7 +103,6 @@ class SavingsProduct(TimestampMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("chart_of_accounts.id"),
         nullable=False,
-        default="2bb25de6-5710-4595-8047-9cc769229645",
     )
     interest_expense_account_id = Column(
         UUID(as_uuid=True),
@@ -183,9 +182,7 @@ class SavingsTransaction(TimestampMixin, Base):
     reference = Column(String(100), nullable=True)  # e.g. mobile money ref
     description = Column(Text, nullable=True)
     transaction_date = Column(Date, nullable=False)
-    processed_by_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )
+    processed_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
     account = relationship("SavingsAccount", back_populates="transactions")
     tx_type_obj = relationship(

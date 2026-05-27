@@ -23,10 +23,13 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: Optional[str] = None
     TWILIO_PHONE_FROM: Optional[str] = None
 
-    # Mobile Money Configuration
-    MOBILE_MONEY_API_KEY: Optional[str] = None
-    MOBILE_MONEY_API_SECRET: Optional[str] = None
-    MOBILE_MONEY_PROVIDER: str = "mpesa"  # mpesa, airtel_money, etc.
+    # Mobile Money Configuration (MarzPay only)
+    MARZPAY_API_URL: Optional[str] = "https://wallet.wearemarz.com/api/v1/collect-money"
+    MARZPAY_CALLBACK_URL: Optional[str] = None
+    MARZPAY_COUNTRY: str = "UG"
+    API_BASE_URL: Optional[str] = None
+    MOBILE_MONEY_PROVIDER: str = "marzpay"
+    MARZPAY_AUTH_HEADER: str
 
     class Config:
         env_file = ".env"

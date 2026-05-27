@@ -928,6 +928,23 @@ def seed_savings_products(db: Session) -> None:
     # 1. Fetch ALL existing system-wide product codes into a set
     existing_codes = {item.code for item in db.query(SavingsProduct.code).all()}
 
+    control_account = (
+        db.query(ChartOfAccount)
+        .filter_by(account_category="MEMBER_SAVINGS", account_type="LIABILITY")
+        .first()
+    )
+    if not control_account:
+        control_account = (
+            db.query(ChartOfAccount)
+            .filter_by(name="2100 - Member Savings (Control)")
+            .first()
+        )
+
+    if not control_account:
+        raise RuntimeError(
+            "Missing savings control chart account; ensure chart accounts are seeded before savings products."
+        )
+
     any_new_items = False
 
     for row in _SAVINGS_PRODUCTS:
@@ -951,6 +968,7 @@ def seed_savings_products(db: Session) -> None:
 
         # We extract 'product_type' so it doesn't break model unpacking with unexpected fields
         product_data = {k: v for k, v in row.items() if k != "product_type"}
+        product_data["savings_control_account_id"] = control_account.id
 
         # 5. Build and stage the global product record
         db.add(SavingsProduct(product_type_id=product_type.id, **product_data))
@@ -1159,21 +1177,21 @@ def seed_lookups(db: Session) -> None:
     seed_genders(db)
     seed_user_types(db)
     seed_member_statuses(db)
+    seed_loan_interest_methods(db)
+    seed_loan_repayment_frequencies(db)
     seed_loan_products(db)
+    seed_ledger_account_types(db)
+    seed_ledger_account_categories(db)
     seed_default_chart_of_accounts(db)
     seed_payment_channels(db)
     seed_marital_statuses(db)
     seed_savings_product_types(db)
     seed_savings_account_statuses(db)
     seed_savings_tx_types(db)
-    seed_loan_interest_methods(db)
-    seed_loan_repayment_frequencies(db)
     seed_loan_application_statuses(db)
     seed_loan_statuses(db)
     seed_loan_collateral_types(db)
     seed_loan_penalty_types(db)
-    seed_ledger_account_types(db)
-    seed_ledger_account_categories(db)
     seed_ledger_entry_types(db)
     seed_ledger_dr_cr(db)
     seed_ledger_entry_statuses(db)

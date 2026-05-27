@@ -119,7 +119,7 @@ class User(TimestampMixin, Base):
     __tablename__ = "users"
 
     role_name = Column(
-        String(15), ForeignKey("roles.role", ondelete="RESTRICT"), nullable=True, default='MEMBER', unique=True
+        String(15), ForeignKey("roles.role", ondelete="RESTRICT"), nullable=True, default='MEMBER'
     )
 
     user_type = Column(
