@@ -1,3 +1,5 @@
+"""Module for app.src.utils.savings_transaction_code_id."""
+
 from uuid import UUID
 
 from fastapi import HTTPException, status

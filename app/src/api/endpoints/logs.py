@@ -1,3 +1,5 @@
+"""Endpoints for retrieving and recording authentication activity logs."""
+
 from typing import List
 from uuid import UUID
 
@@ -20,6 +22,7 @@ router = APIRouter()
 def _extract_location_from_headers(
     request: Request, country: str | None = None, city: str | None = None
 ):
+    """Resolve geographic context from request metadata when it was not provided."""
     if country:
         resolved_country = country
     else:
@@ -46,6 +49,16 @@ def _extract_location_from_headers(
 
 @router.get("/", response_model=List[LoginLogResponse])
 def list_login_logs(db: Session = Depends(get_db)):
+    """
+    Retrieve all login log records.
+
+    This endpoint returns the complete list of stored authentication events for
+    auditing and support review. It is typically used by internal staff or admin
+    tools that need a full activity history.
+
+    Returns:
+        A list of login log entries.
+    """
     return get_login_logs(db)
 
 
@@ -53,6 +66,19 @@ def list_login_logs(db: Session = Depends(get_db)):
 def save_login_log(
     log: LoginLogCreate, request: Request, db: Session = Depends(get_db)
 ):
+    """
+    Persist a new login activity record.
+
+    The request body describes the event details, including status, attempts, and
+    optional location fields. The endpoint captures request metadata such as the
+    client IP address and user agent, then stores the record for later review.
+
+    Returns:
+        The created login log entry.
+
+    Raises:
+        HTTPException: If the record cannot be saved.
+    """
     client_host = None
     if request.client:
         client_host = request.client.host
@@ -84,6 +110,18 @@ def save_login_log(
 
 @router.get("/{log_id}", response_model=LoginLogResponse)
 def get_login_log(log_id: UUID, db: Session = Depends(get_db)):
+    """
+    Fetch a single login log entry by identifier.
+
+    This endpoint is useful when investigating a specific authentication event.
+    If the requested record does not exist, the API returns a not-found error.
+
+    Returns:
+        The matching login log entry.
+
+    Raises:
+        HTTPException: If no log exists for the provided ID.
+    """
     log = get_login_log_by_id(db, log_id)
     if not log:
         raise HTTPException(
@@ -94,4 +132,13 @@ def get_login_log(log_id: UUID, db: Session = Depends(get_db)):
 
 @router.get("/user/{user_id}", response_model=List[LoginLogResponse])
 def list_login_logs_for_user(user_id: UUID, db: Session = Depends(get_db)):
+    """
+    Retrieve all login logs associated with a specific user.
+
+    This is helpful for reviewing a user's authentication history, including both
+    successful and failed attempts.
+
+    Returns:
+        A list of login events for the requested user.
+    """
     return get_login_logs_by_user(db, user_id)

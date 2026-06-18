@@ -1,3 +1,5 @@
+"""Module for app.src.api.endpoints.shares_extended."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID

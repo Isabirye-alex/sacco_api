@@ -1,3 +1,5 @@
+"""Module for app.src.crud.ledger.ledger_crud."""
+
 from sqlalchemy.orm import Session
 
 from app.src.models.ledger import ChartOfAccount, LedgerEntry, LedgerLine, JournalEntry

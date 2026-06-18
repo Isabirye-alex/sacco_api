@@ -1,3 +1,5 @@
+"""Module for app.src.api.endpoints.savings."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -48,6 +50,11 @@ router = APIRouter()
 def create_savings_product_endpoint(
     product: SavingsProductCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a new savings product definition.
+
+    Savings products define account rules such as interest, minimum balances, and lock periods.
+    """
     try:
         return create_savings_product(db, product)
     except Exception as e:
@@ -59,11 +66,17 @@ def create_savings_product_endpoint(
 
 @router.get("/products", response_model=list[SavingsProductResponse])
 def list_savings_products(db: Session = Depends(get_db)):
+    """
+    List all configured savings products.
+    """
     return db.query(SavingsProduct).all()
 
 
 @router.get("/accounts", response_model=list[SavingsAccountResponse])
 def list_savings_accounts(db: Session = Depends(get_db)):
+    """
+    List all savings accounts in the system.
+    """
     return db.query(SavingsAccount).all()
 
 
@@ -78,6 +91,11 @@ def deposit_endpoint(
     user_id: str = Depends(get_user_id_from_token),
     member_id: str = Depends(get_member_id_from_token),
 ):
+    """
+    Record a savings deposit and update the account ledger.
+
+    The endpoint processes the deposit, updates balances, and sends confirmation notifications.
+    """
     try:
         result = execute_savings_deposit_with_ledger(
             db,
@@ -130,6 +148,11 @@ def withdraw_endpoint(
     user_id: str = Depends(get_user_id_from_token),
     member_id: str = Depends(get_member_id_from_token),
 ):
+    """
+    Process a savings withdrawal request.
+
+    The endpoint validates the request, updates the ledger, and sends a confirmation message.
+    """
     try:
         result = execute_savings_withdrawal_with_ledger(
             db,
@@ -183,6 +206,11 @@ def transfer_funds_endpoint(
     db: Session = Depends(get_db),
     member_id: str = Depends(get_member_id_from_token),
 ):
+    """
+    Transfer funds between two savings accounts.
+
+    This endpoint updates both accounts and returns a success summary for the caller.
+    """
     try:
         result = execute_fund_transfer_with_ledger(
             db,
@@ -250,7 +278,11 @@ def get_transactions_endpoint(
     limit: int = 50,
     db: Session = Depends(get_db),
 ):
-    """Get transaction history for a savings account."""
+    """
+    Retrieve paginated transaction history for a savings account.
+
+    This endpoint is useful for account statements and audit review.
+    """
     try:
         transactions = get_savings_transactions(db, account_id, skip=skip, limit=limit)
         return transactions
@@ -266,7 +298,11 @@ def get_balance_endpoint(
     account_id: str,
     db: Session = Depends(get_db),
 ):
-    """Get current balance of a savings account."""
+    """
+    Fetch the current balance of a savings account.
+
+    This is commonly used by apps and dashboards to show real-time account status.
+    """
     try:
         balance = get_account_balance(db, account_id)
         if not balance:
@@ -281,6 +317,9 @@ def get_balance_endpoint(
 
 @router.get("/transactions", response_model=list[SavingsTransactionResponse])
 def list_savings_transactions(db: Session = Depends(get_db)):
+    """
+    List all savings transactions available to the caller.
+    """
     return db.query(SavingsTransaction).all()
 
 
@@ -295,5 +334,9 @@ class PaymentChannelResponse(BaseModel):
 
 @router.get("/payment-channels", response_model=list[PaymentChannelResponse])
 def list_payment_channels(db: Session = Depends(get_db)):
-    """Fetch all active payment channels to populate the frontend dropdown."""
+    """
+    Fetch all configured payment channels used for deposits and withdrawals.
+
+    These values are typically used to populate dropdowns in the frontend.
+    """
     return db.query(PaymentChannelConfiguration).all()

@@ -1,3 +1,5 @@
+"""Module for tmp_extract_proposal."""
+
 from pathlib import Path
 import zipfile
 import xml.etree.ElementTree as ET

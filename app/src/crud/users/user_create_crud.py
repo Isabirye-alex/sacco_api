@@ -1,3 +1,5 @@
+"""Module for app.src.crud.users.user_create_crud."""
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.src.models.member import User

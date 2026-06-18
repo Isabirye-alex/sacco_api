@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+"""Module for app.src.api.endpoints.member."""
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import logging
 
@@ -46,6 +48,15 @@ logger = logging.getLogger(__name__)
 
 @router.post("/", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)
 def create_member_endpoint(member: MemberCreate,user: UserCreate ,db: Session = Depends(get_db)):
+    """
+    Register a new member and create the related user account.
+
+    This endpoint accepts the member profile payload and the initial user credentials,
+    validates the input, and stores both records together so the new member can log in
+    immediately after registration.
+
+    Returns the created member record in the response body.
+    """
     try:
         return create_member(db, member, user)
 
@@ -69,6 +80,13 @@ def create_member_endpoint(member: MemberCreate,user: UserCreate ,db: Session = 
     "/genders", response_model=GenderResponse, status_code=status.HTTP_201_CREATED
 )
 def create_gender_endpoint(gender: GenderCreate, db: Session = Depends(get_db)):
+    """
+    Create a new gender lookup entry.
+
+    Use this endpoint to add a permitted gender option to the system lookup data.
+    The value is stored as a reference record and can later be used by member forms,
+    filters, and reporting.
+    """
     try:
         return create_gender(db, gender)
     except Exception as e:
@@ -80,6 +98,12 @@ def create_gender_endpoint(gender: GenderCreate, db: Session = Depends(get_db)):
 
 @router.get("/genders", response_model=list[GenderResponse])
 def list_genders(db: Session = Depends(get_db)):
+    """
+    Retrieve all available gender values.
+
+    This endpoint returns the lookup table used to populate dropdowns and validation lists
+    for member registration and profile updates.
+    """
     return db.query(Gender).all()
 
 
@@ -89,10 +113,16 @@ def list_genders(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_member_status_endpoint(
-    status: MemberStatusCreate, db: Session = Depends(get_db)
+    member_status: MemberStatusCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a new member status lookup record.
+
+    This endpoint allows administrators to define status options such as Active,
+    Pending, Suspended, or Exited for member lifecycle tracking.
+    """
     try:
-        return create_member_status(db, status)
+        return create_member_status(db, member_status)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -102,6 +132,12 @@ def create_member_status_endpoint(
 
 @router.get("/member-statuses", response_model=list[MemberStatusResponse])
 def list_member_statuses(db: Session = Depends(get_db)):
+    """
+    Retrieve all member status values.
+
+    The returned records are used by the application to surface the available lifecycle
+    states for members and to support search and filtering in admin screens.
+    """
     return db.query(MemberStatus).all()
 
 
@@ -111,10 +147,15 @@ def list_member_statuses(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_marital_status_endpoint(
-    status: MaritalStatusCreate, db: Session = Depends(get_db)
+    marital_status: MaritalStatusCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a new marital status lookup value.
+
+    This endpoint stores the allowable marital options for member records and profile forms.
+    """
     try:
-        return create_marital_status(db, status)
+        return create_marital_status(db, marital_status)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -124,11 +165,23 @@ def create_marital_status_endpoint(
 
 @router.get("/marital-statuses", response_model=list[MaritalStatusResponse])
 def list_marital_statuses(db: Session = Depends(get_db)):
+    """
+    Retrieve all marital status values.
+
+    This endpoint is typically used to populate forms and filters that ask for the
+    member's marital background.
+    """
     return db.query(MaritalStatus).all()
 
 
 @router.post("/roles", response_model=RoleResponse, status_code=status.HTTP_201_CREATED)
 def create_role_endpoint(role: RoleCreate, db: Session = Depends(get_db)):
+    """
+    Create a new role definition in the system.
+
+    Use this endpoint to add access roles or organizational responsibilities that can be
+    assigned to staff and members throughout the platform.
+    """
     try:
         return create_role(db, role)
     except Exception as e:
@@ -140,6 +193,12 @@ def create_role_endpoint(role: RoleCreate, db: Session = Depends(get_db)):
 
 @router.get("/roles", response_model=list[RoleResponse])
 def list_roles(db: Session = Depends(get_db)):
+    """
+    Retrieve all available roles.
+
+    This endpoint returns the lookup records used by authorization logic, admin tools,
+    and UI role-selection components.
+    """
     return db.query(Role).all()
 
 
@@ -149,6 +208,12 @@ def list_roles(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_next_of_kin_endpoint(kin: NextOfKinCreate, db: Session = Depends(get_db)):
+    """
+    Create a next-of-kin record for a member.
+
+    This endpoint stores emergency contact information that may be needed for member
+    verification, support workflows, and operational follow-up.
+    """
     try:
         return create_next_of_kin(db, kin)
     except Exception as e:
@@ -160,6 +225,12 @@ def create_next_of_kin_endpoint(kin: NextOfKinCreate, db: Session = Depends(get_
 
 @router.get("/next-of-kin", response_model=list[NextOfKinResponse])
 def list_next_of_kin(db: Session = Depends(get_db)):
+    """
+    Retrieve all next-of-kin records.
+
+    This endpoint is helpful for admin review, emergency contact lookups, and member
+    support operations.
+    """
     return db.query(NextOfKin).all()
 
 
@@ -168,6 +239,13 @@ def get_member_data(
     db: Session = Depends(get_db), 
     member_id: str = Depends(get_member_id_from_token) # Token is decoded automatically right here!
 ):
+    """
+    Retrieve the authenticated member's full profile.
+
+    The token is used to determine which member is making the request, and the response
+    returns the complete member profile data needed by dashboards, profile pages, and
+    account management workflows.
+    """
     try:
         member_data = get_current_member(db, member_id)
         if not member_data:

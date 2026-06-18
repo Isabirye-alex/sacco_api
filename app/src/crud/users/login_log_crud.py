@@ -1,3 +1,5 @@
+"""Module for app.src.crud.users.login_log_crud."""
+
 from typing import List
 from uuid import UUID
 

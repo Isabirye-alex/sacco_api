@@ -1,3 +1,5 @@
+"""Module for app.src.models.mobile_money."""
+
 from sqlalchemy import Column, String, Numeric, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship

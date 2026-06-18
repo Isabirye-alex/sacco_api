@@ -1,3 +1,5 @@
+"""Module for app.src.schemas.users.user_schema."""
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import date
 from typing import Optional

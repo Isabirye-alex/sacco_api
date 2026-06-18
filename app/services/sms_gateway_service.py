@@ -1,3 +1,5 @@
+"""Module for app.services.sms_gateway_service."""
+
 import requests
 from typing import List, Optional
 from app.src.config.settings import settings

@@ -1,3 +1,5 @@
+"""Module for app.src.crud.get_user_by_email."""
+
 from sqlalchemy.orm import Session
 from app.src.models.member import User
 

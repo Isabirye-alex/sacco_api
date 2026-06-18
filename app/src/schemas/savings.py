@@ -1,3 +1,5 @@
+"""Module for app.src.schemas.savings."""
+
 from datetime import date
 from typing import Optional
 from uuid import UUID

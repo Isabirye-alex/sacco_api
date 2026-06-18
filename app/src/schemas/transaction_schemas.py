@@ -1,3 +1,5 @@
+"""Module for app.src.schemas.transaction_schemas."""
+
 from datetime import date, datetime
 from typing import Optional, List
 from uuid import UUID

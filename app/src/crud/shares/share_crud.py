@@ -1,3 +1,5 @@
+"""Module for app.src.crud.shares.share_crud."""
+
 from sqlalchemy.orm import Session
 
 from app.src.models.shares import (

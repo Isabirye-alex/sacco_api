@@ -1,3 +1,5 @@
+"""Module for app.src.schemas.loans.loan_schema."""
+
 from datetime import date
 from typing import Optional
 from uuid import UUID

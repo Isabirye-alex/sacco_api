@@ -1,3 +1,5 @@
+"""Module for app.src.api.endpoints.ledger."""
+
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -37,6 +39,9 @@ router = APIRouter()
 def create_chart_of_account_endpoint(
     account: ChartOfAccountCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a chart-of-accounts entry used by the accounting system.
+    """
     try:
         return create_chart_of_account(db, account)
     except Exception as e:
@@ -48,6 +53,9 @@ def create_chart_of_account_endpoint(
 
 @router.get("/accounts", response_model=list[ChartOfAccountResponse])
 def list_chart_of_accounts(db: Session = Depends(get_db)):
+    """
+    List all chart-of-accounts entries.
+    """
     return db.query(ChartOfAccount).all()
 
 
@@ -59,6 +67,9 @@ def list_chart_of_accounts(db: Session = Depends(get_db)):
 def create_ledger_entry_endpoint(
     entry: LedgerEntryCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a ledger entry for an accounting transaction.
+    """
     try:
         return create_ledger_entry(db, entry)
     except Exception as e:
@@ -70,6 +81,9 @@ def create_ledger_entry_endpoint(
 
 @router.get("/entries", response_model=list[LedgerEntryResponse])
 def list_ledger_entries(db: Session = Depends(get_db)):
+    """
+    List all ledger entries.
+    """
     return db.query(LedgerEntry).all()
 
 
@@ -79,6 +93,9 @@ def list_ledger_entries(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_ledger_line_endpoint(line: LedgerLineCreate, db: Session = Depends(get_db)):
+    """
+    Create a ledger line associated with a journal or posting.
+    """
     try:
         return create_ledger_line(db, line)
     except Exception as e:
@@ -90,6 +107,9 @@ def create_ledger_line_endpoint(line: LedgerLineCreate, db: Session = Depends(ge
 
 @router.get("/lines", response_model=list[LedgerLineResponse])
 def list_ledger_lines(db: Session = Depends(get_db)):
+    """
+    List all ledger lines.
+    """
     return db.query(LedgerLine).all()
 
 
@@ -101,6 +121,9 @@ def list_ledger_lines(db: Session = Depends(get_db)):
 def create_journal_entry_endpoint(
     journal: JournalEntryCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a journal entry used for manual accounting adjustments.
+    """
     try:
         return create_journal_entry(db, journal)
     except Exception as e:
@@ -112,4 +135,7 @@ def create_journal_entry_endpoint(
 
 @router.get("/journals", response_model=list[JournalEntryResponse])
 def list_journal_entries(db: Session = Depends(get_db)):
+    """
+    List all journal entries.
+    """
     return db.query(JournalEntry).all()

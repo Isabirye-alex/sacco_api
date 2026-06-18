@@ -1,3 +1,5 @@
+"""Module for app.src.api.routes.app_routes."""
+
 from fastapi import APIRouter
 from app.src.api.endpoints.users import router as users_route
 from app.src.api.endpoints.auth import router as auth_route

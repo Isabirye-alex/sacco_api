@@ -1,3 +1,5 @@
+"""Module for app.src.crud.member.member_crud."""
+
 from datetime import date
 from app.src.schemas.users.user_schema import UserCreate
 from app.src.utils.generate_random_account_number import generate_unique_account_no

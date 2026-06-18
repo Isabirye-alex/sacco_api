@@ -1,3 +1,5 @@
+"""Module for app.src.api.endpoints.loans."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -51,6 +53,11 @@ router = APIRouter()
 def create_loan_product_endpoint(
     product: LoanProductCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a new loan product configuration.
+
+    Loan products define the rules used for eligibility, terms, and pricing.
+    """
     try:
         return create_loan_product(db, product)
     except Exception as e:
@@ -62,6 +69,9 @@ def create_loan_product_endpoint(
 
 @router.get("/products", response_model=list[LoanProductResponse])
 def list_loan_products(db: Session = Depends(get_db)):
+    """
+    List all available loan products.
+    """
     return db.query(LoanProduct).all()
 
 
@@ -74,6 +84,11 @@ def create_loan_application_endpoint(
     application: LoanApplicationCreate, db: Session = Depends(get_db), 
     member_id: str = Depends(get_member_id_from_token)
 ):
+    """
+    Submit a new loan application for the authenticated member.
+
+    The endpoint validates the request and stores the application for review.
+    """
     try:
         return create_loan_application(db, application, member_id)
     except Exception as e:
@@ -85,6 +100,9 @@ def create_loan_application_endpoint(
 
 @router.get("/applications", response_model=list[LoanApplicationResponse])
 def list_loan_applications(db: Session = Depends(get_db)):
+    """
+    List all loan applications.
+    """
     return db.query(LoanApplication).all()
 
 
@@ -94,6 +112,11 @@ def list_loan_applications(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_loan_endpoint(loan: LoanCreate, db: Session = Depends(get_db)):
+    """
+    Create a loan record after approval.
+
+    This endpoint is used once an application has been approved and the loan is ready to be issued.
+    """
     try:
         return create_loan(db, loan)
     except Exception as e:
@@ -105,6 +128,9 @@ def create_loan_endpoint(loan: LoanCreate, db: Session = Depends(get_db)):
 
 @router.get("/loans", response_model=list[LoanResponse])
 def list_loans(db: Session = Depends(get_db)):
+    """
+    List all loans in the system.
+    """
     return db.query(Loan).all()
 
 
@@ -116,6 +142,9 @@ def list_loans(db: Session = Depends(get_db)):
 def create_loan_guarantor_endpoint(
     guarantor: LoanGuarantorCreate, db: Session = Depends(get_db)
 ):
+    """
+    Register a guarantor for a loan application or approved loan.
+    """
     try:
         return create_loan_guarantor(db, guarantor)
     except Exception as e:
@@ -127,6 +156,9 @@ def create_loan_guarantor_endpoint(
 
 @router.get("/guarantors", response_model=list[LoanGuarantorResponse])
 def list_loan_guarantors(db: Session = Depends(get_db)):
+    """
+    List all recorded loan guarantors.
+    """
     return db.query(LoanGuarantor).all()
 
 
@@ -138,6 +170,9 @@ def list_loan_guarantors(db: Session = Depends(get_db)):
 def create_loan_collateral_endpoint(
     collateral: LoanCollateralCreate, db: Session = Depends(get_db)
 ):
+    """
+    Register collateral linked to a loan.
+    """
     try:
         return create_loan_collateral(db, collateral)
     except Exception as e:
@@ -149,6 +184,9 @@ def create_loan_collateral_endpoint(
 
 @router.get("/collaterals", response_model=list[LoanCollateralResponse])
 def list_loan_collaterals(db: Session = Depends(get_db)):
+    """
+    List all loan collateral records.
+    """
     return db.query(LoanCollateral).all()
 
 
@@ -160,6 +198,9 @@ def list_loan_collaterals(db: Session = Depends(get_db)):
 def create_loan_repayment_schedule_endpoint(
     schedule: LoanRepaymentScheduleCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create the repayment schedule for a loan.
+    """
     try:
         return create_loan_repayment_schedule(db, schedule)
     except Exception as e:
@@ -171,6 +212,9 @@ def create_loan_repayment_schedule_endpoint(
 
 @router.get("/repayment-schedules", response_model=list[LoanRepaymentScheduleResponse])
 def list_loan_repayment_schedules(db: Session = Depends(get_db)):
+    """
+    List all repayment schedules.
+    """
     return db.query(LoanRepaymentSchedule).all()
 
 
@@ -182,6 +226,9 @@ def list_loan_repayment_schedules(db: Session = Depends(get_db)):
 def create_loan_repayment_endpoint(
     repayment: LoanRepaymentCreate, db: Session = Depends(get_db)
 ):
+    """
+    Record a repayment made against a loan.
+    """
     try:
         return create_loan_repayment(db, repayment)
     except Exception as e:
@@ -193,6 +240,9 @@ def create_loan_repayment_endpoint(
 
 @router.get("/repayments", response_model=list[LoanRepaymentResponse])
 def list_loan_repayments(db: Session = Depends(get_db)):
+    """
+    List all recorded loan repayments.
+    """
     return db.query(LoanRepayment).all()
 
 
@@ -204,6 +254,9 @@ def list_loan_repayments(db: Session = Depends(get_db)):
 def create_loan_penalty_endpoint(
     penalty: LoanPenaltyCreate, db: Session = Depends(get_db)
 ):
+    """
+    Record a penalty applied to a loan account.
+    """
     try:
         return create_loan_penalty(db, penalty)
     except Exception as e:
@@ -215,4 +268,7 @@ def create_loan_penalty_endpoint(
 
 @router.get("/penalties", response_model=list[LoanPenaltyResponse])
 def list_loan_penalties(db: Session = Depends(get_db)):
+    """
+    List all loan penalty records.
+    """
     return db.query(LoanPenalty).all()

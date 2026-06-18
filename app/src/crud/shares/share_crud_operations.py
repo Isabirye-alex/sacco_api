@@ -1,3 +1,5 @@
+"""Module for app.src.crud.shares.share_crud_operations."""
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.src.models import ShareAccount, ShareTransaction, Dividend

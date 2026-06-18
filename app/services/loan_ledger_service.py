@@ -1,3 +1,5 @@
+"""Module for app.services.loan_ledger_service."""
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID

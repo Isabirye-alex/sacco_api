@@ -1,3 +1,5 @@
+"""Module for app.src.utils.auth."""
+
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone

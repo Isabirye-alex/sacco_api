@@ -1,3 +1,5 @@
+"""Module for app.src.crud.savings.savings_crud."""
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 

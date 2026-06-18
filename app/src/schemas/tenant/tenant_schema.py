@@ -1,3 +1,5 @@
+"""Module for app.src.schemas.tenant.tenant_schema."""
+
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr

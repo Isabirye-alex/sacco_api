@@ -1,3 +1,5 @@
+"""Module for app.src.utils.generate_unique_loan_number."""
+
 import uuid
 
 def generate_uuid_loan_number() -> str:

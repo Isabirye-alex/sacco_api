@@ -1,3 +1,5 @@
+"""Module for app.src.models.shares."""
+
 from sqlalchemy import (
     Column,
     String,

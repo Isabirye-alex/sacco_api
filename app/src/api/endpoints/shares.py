@@ -1,3 +1,5 @@
+"""Module for app.src.api.endpoints.shares."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -40,6 +42,9 @@ router = APIRouter()
 def create_share_product_endpoint(
     product: ShareProductCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a new share product definition.
+    """
     try:
         return create_share_product(db, product)
     except Exception as e:
@@ -51,6 +56,9 @@ def create_share_product_endpoint(
 
 @router.get("/products", response_model=list[ShareProductResponse])
 def list_share_products(db: Session = Depends(get_db)):
+    """
+    List all configured share products.
+    """
     return db.query(ShareProduct).all()
 
 
@@ -62,6 +70,9 @@ def list_share_products(db: Session = Depends(get_db)):
 def create_share_account_endpoint(
     account: ShareAccountCreate, db: Session = Depends(get_db)
 ):
+    """
+    Create a member share account.
+    """
     try:
         return create_share_account(db, account)
     except Exception as e:
@@ -73,6 +84,9 @@ def create_share_account_endpoint(
 
 @router.get("/accounts", response_model=list[ShareAccountResponse])
 def list_share_accounts(db: Session = Depends(get_db)):
+    """
+    List all share accounts.
+    """
     return db.query(ShareAccount).all()
 
 
@@ -84,6 +98,9 @@ def list_share_accounts(db: Session = Depends(get_db)):
 def create_share_transaction_endpoint(
     tx: ShareTransactionCreate, db: Session = Depends(get_db)
 ):
+    """
+    Record a share purchase, redemption, or transfer transaction.
+    """
     try:
         return create_share_transaction(db, tx)
     except Exception as e:
@@ -95,6 +112,9 @@ def create_share_transaction_endpoint(
 
 @router.get("/transactions", response_model=list[ShareTransactionResponse])
 def list_share_transactions(db: Session = Depends(get_db)):
+    """
+    List all share transactions.
+    """
     return db.query(ShareTransaction).all()
 
 
@@ -104,6 +124,9 @@ def list_share_transactions(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_dividend_endpoint(dividend: DividendCreate, db: Session = Depends(get_db)):
+    """
+    Create a dividend declaration for a share product.
+    """
     try:
         return create_dividend(db, dividend)
     except Exception as e:
@@ -115,6 +138,9 @@ def create_dividend_endpoint(dividend: DividendCreate, db: Session = Depends(get
 
 @router.get("/dividends", response_model=list[DividendResponse])
 def list_dividends(db: Session = Depends(get_db)):
+    """
+    List all declared dividends.
+    """
     return db.query(Dividend).all()
 
 
@@ -126,6 +152,9 @@ def list_dividends(db: Session = Depends(get_db)):
 def create_dividend_payment_endpoint(
     payment: DividendPaymentCreate, db: Session = Depends(get_db)
 ):
+    """
+    Record payment of a declared dividend to a member.
+    """
     try:
         return create_dividend_payment(db, payment)
     except Exception as e:
@@ -137,4 +166,7 @@ def create_dividend_payment_endpoint(
 
 @router.get("/dividend-payments", response_model=list[DividendPaymentResponse])
 def list_dividend_payments(db: Session = Depends(get_db)):
+    """
+    List all dividend payment records.
+    """
     return db.query(DividendPayment).all()

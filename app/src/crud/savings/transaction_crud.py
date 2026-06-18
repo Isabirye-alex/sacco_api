@@ -1,3 +1,5 @@
+"""Module for app.src.crud.savings.transaction_crud."""
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from app.src.models import SavingsTransaction, SavingsAccount

@@ -1,3 +1,5 @@
+"""Module for app.src.models.base_file."""
+
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, DateTime, Boolean

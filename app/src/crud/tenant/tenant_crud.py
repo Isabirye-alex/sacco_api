@@ -1,3 +1,5 @@
+"""Module for app.src.crud.tenant.tenant_crud."""
+
 from app.src.schemas.tenant.tenant_schema import (
     OrganisationCreate,
     BranchCreate,

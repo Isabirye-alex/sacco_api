@@ -1,3 +1,5 @@
+"""Module for app.src.utils.generate_random_account_number."""
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 

@@ -1,3 +1,5 @@
+"""Module for app.src.repositories.savings_repository."""
+
 from abc import ABC, abstractmethod
 
 

@@ -1,3 +1,5 @@
+"""Module for app.src.utils.generate_unique_application_no."""
+
 import secrets
 import uuid
 from sqlalchemy.orm import Session

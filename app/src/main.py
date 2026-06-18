@@ -1,3 +1,5 @@
+"""Module for app.src.main."""
+
 from contextlib import asynccontextmanager
 from pathlib import Path
 

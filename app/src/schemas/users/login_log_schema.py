@@ -1,3 +1,5 @@
+"""Module for app.src.schemas.users.login_log_schema."""
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID

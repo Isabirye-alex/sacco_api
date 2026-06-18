@@ -1,3 +1,5 @@
+"""Module for app.src.crud.loans.loan_crud."""
+
 from datetime import date
 
 from sqlalchemy.orm import Session

@@ -1,3 +1,5 @@
+"""Module for app.services.shares_ledger_service."""
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID

@@ -1,3 +1,5 @@
+"""Module for app.src.models.users.login_logs."""
+
 from app.src.models.base_file import Base, TimestampMixin
 from sqlalchemy import Column, Integer, TEXT, DateTime, String, UUID, ForeignKey, func
 from sqlalchemy.orm import relationship

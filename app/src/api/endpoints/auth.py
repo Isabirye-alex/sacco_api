@@ -1,3 +1,5 @@
+"""Authentication endpoints for sign-in, token issuance, and login auditing."""
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,7 @@ from app.src.schemas.users.user_schema import UserResponse, UserSignIn
 from app.src.utils.auth import (
     verify_password,
     create_access_token,
-)  # Imported your token utility
+)
 
 router = APIRouter()
 
@@ -17,6 +19,7 @@ router = APIRouter()
 def _extract_location(
     request: Request, country: str | None = None, city: str | None = None
 ):
+    """Resolve location data from request headers when it is not supplied explicitly."""
     if country:
         resolved_country = country
     else:
@@ -43,6 +46,21 @@ def _extract_location(
 
 @router.post("/signin", response_model=UserResponse)
 def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
+    """
+    Authenticate a user and issue a JWT access token.
+
+    The request body carries the user's credentials and optional location hints.
+    After validating the email/password combination, the endpoint records the
+    outcome in the login log table and returns a bearer token for subsequent API
+    calls. Failed attempts are also logged so they can be reviewed by support staff.
+
+    Raises:
+        HTTPException: If the supplied credentials are invalid or the login cannot
+            be recorded.
+
+    Returns:
+        A token response containing the access token and token type.
+    """
     user = get_user_by_email(db, auth.email)
     failed_attempts = 0
     if user:
@@ -52,7 +70,6 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
         request, auth.location_country, auth.location_city
     )
 
-    # 1. Invalid Credentials Handling
     if not user or not verify_password(auth.password, user.hashed_password):
         attempt_count = failed_attempts + 1
         log_entry = LoginLogs(
@@ -73,7 +90,6 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
         )
 
-    # 2. Successful Login Handling
     attempt_count = 1
     log_entry = LoginLogs(
         user_id=user.id,
@@ -90,7 +106,6 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
     )
     create_login_log(db, log_entry)
 
-    # 3. Mint JWT Access Token (Expires in 30 minutes inside your utility)
     token_payload = {
         "sub": str(user.id),
         "member_id": str(user.member_id) if user.member_id else None,

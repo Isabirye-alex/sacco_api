@@ -1,3 +1,5 @@
+"""Module for app.src.models.member."""
+
 from sqlalchemy import (
     Column,
     String,

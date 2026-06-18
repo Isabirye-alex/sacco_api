@@ -1,3 +1,5 @@
+"""Module for app.src.crud.loans.loan_crud_operations."""
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from datetime import date

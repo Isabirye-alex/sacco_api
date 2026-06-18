@@ -1,3 +1,5 @@
+"""Module for app.src.config.settings."""
+
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict

@@ -1,3 +1,5 @@
+"""Module for app.src.utils.geoip."""
+
 from typing import Tuple, Optional
 
 

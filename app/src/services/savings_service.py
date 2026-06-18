@@ -1,3 +1,5 @@
+"""Module for app.src.services.savings_service."""
+
 from dataclasses import dataclass
 from decimal import Decimal
 from types import SimpleNamespace

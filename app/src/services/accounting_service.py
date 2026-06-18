@@ -1,3 +1,5 @@
+"""Module for app.src.services.accounting_service."""
+
 from typing import Any, Dict
 
 

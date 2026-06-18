@@ -1,3 +1,5 @@
+"""Module for app.src.models.ledger."""
+
 from sqlalchemy import (
     Column,
     String,

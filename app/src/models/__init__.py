@@ -1,3 +1,5 @@
+"""Module for app.src.models.__init__."""
+
 from app.src.models.base_file import Base, TimestampMixin  # noqa: F401
 
 # Multi-tenancy

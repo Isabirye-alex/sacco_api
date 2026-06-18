@@ -1,3 +1,5 @@
+"""Module for app.src.models.savings."""
+
 from sqlalchemy import (
     Column,
     String,
