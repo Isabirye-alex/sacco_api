@@ -1,8 +1,8 @@
-"""user_role_fix
+"""initial
 
-Revision ID: 200eda0e1c6b
+Revision ID: 52f120699e3d
 Revises: 
-Create Date: 2026-05-27 16:36:43.352930
+Create Date: 2026-06-18 18:02:26.529829
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '200eda0e1c6b'
+revision: str = '52f120699e3d'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -826,6 +826,7 @@ def upgrade() -> None:
     sa.Column('account_id', sa.UUID(), nullable=False),
     sa.Column('ledger_entry_id', sa.UUID(), nullable=True),
     sa.Column('tx_type_id', sa.UUID(), nullable=False),
+    sa.Column('member_id', sa.UUID(), nullable=True),
     sa.Column('amount', sa.Numeric(precision=18, scale=4), nullable=False),
     sa.Column('balance_after', sa.Numeric(precision=18, scale=4), nullable=False),
     sa.Column('reference', sa.String(length=100), nullable=True),
@@ -838,6 +839,7 @@ def upgrade() -> None:
     sa.Column('is_deleted', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['account_id'], ['savings_accounts.id'], ),
     sa.ForeignKeyConstraint(['ledger_entry_id'], ['ledger_entries.id'], ),
+    sa.ForeignKeyConstraint(['member_id'], ['members.id'], ),
     sa.ForeignKeyConstraint(['processed_by_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['tx_type_id'], ['savings_tx_types.id'], ),
     sa.PrimaryKeyConstraint('id')

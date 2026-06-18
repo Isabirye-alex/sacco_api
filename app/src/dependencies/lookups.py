@@ -7,6 +7,8 @@ These are global tables (not per-organisation) so they are seeded once
 for the whole platform.
 """
 
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.src.models.member import Gender, MemberStatus, MaritalStatus, Role, UserType
@@ -42,8 +44,10 @@ from app.src.models.shares import (
 
 # Roles
 
+LookupRow = dict[str, Any]
 
-_LOAN_PRODUCTS = [
+
+_LOAN_PRODUCTS: list[LookupRow] = [
     {
         "name": "Business Loan",
         "code": "BIZ_LOAN",
@@ -294,7 +298,7 @@ _LOAN_PRODUCTS = [
     },
 ]
 
-_ROLES = [
+_ROLES: list[LookupRow] = [
     {
         "role": "MEMBER",
         "description": "Regular SACCO member — portal access only.",
@@ -329,7 +333,7 @@ _ROLES = [
 
 
 # Gender
-_GENDERS = [
+_GENDERS: list[LookupRow] = [
     {"gender": "Male", "description": None},
     {"gender": "Female", "description": None},
     {"gender": "Other", "description": None},
@@ -339,7 +343,7 @@ _GENDERS = [
 
 #  Member Status
 
-_MEMBER_STATUSES = [
+_MEMBER_STATUSES: list[LookupRow] = [
     {"status": "Pending", "description": "Application submitted, awaiting approval."},
     {"status": "Active", "description": "Fully registered and active member."},
     {"status": "Dormant", "description": "No account activity for more than 6 months."},
@@ -355,19 +359,19 @@ _MEMBER_STATUSES = [
 
 
 # Authentication / User Types
-_USER_TYPES = [
+_USER_TYPES: list[LookupRow] = [
     {"code": "MEMBER", "description": "Regular member portal user."},
     {"code": "STAFF", "description": "Staff or administrator account."},
 ]
 
 
 # Loan lookups
-_LOAN_INTEREST_METHODS = [
+_LOAN_INTEREST_METHODS: list[LookupRow] = [
     {"code": "FLAT_RATE", "description": "Interest on original principal."},
     {"code": "REDUCING_BALANCE", "description": "Interest on outstanding balance."},
 ]
 
-_LOAN_REPAYMENT_FREQUENCIES = [
+_LOAN_REPAYMENT_FREQUENCIES: list[LookupRow] = [
     {"code": "DAILY", "description": "Daily repayment frequency."},
     {"code": "WEEKLY", "description": "Weekly repayment frequency."},
     {"code": "BIWEEKLY", "description": "Biweekly repayment frequency."},
@@ -377,7 +381,7 @@ _LOAN_REPAYMENT_FREQUENCIES = [
     {"code": "LUMP_SUM", "description": "One-time lump sum repayment."},
 ]
 
-_LOAN_APPLICATION_STATUSES = [
+_LOAN_APPLICATION_STATUSES: list[LookupRow] = [
     {"code": "DRAFT", "description": "Draft application."},
     {"code": "SUBMITTED", "description": "Submitted for review."},
     {"code": "UNDER_REVIEW", "description": "Under review by staff."},
@@ -386,7 +390,7 @@ _LOAN_APPLICATION_STATUSES = [
     {"code": "WITHDRAWN", "description": "Withdrawn by applicant."},
 ]
 
-_LOAN_STATUSES = [
+_LOAN_STATUSES: list[LookupRow] = [
     {"code": "PENDING", "description": "Approved, not yet disbursed."},
     {"code": "ACTIVE", "description": "Active loan."},
     {"code": "IN_ARREARS", "description": "Loan in arrears."},
@@ -394,7 +398,7 @@ _LOAN_STATUSES = [
     {"code": "CLOSED", "description": "Closed loan."},
 ]
 
-_LOAN_COLLATERAL_TYPES = [
+_LOAN_COLLATERAL_TYPES: list[LookupRow] = [
     {"code": "LAND", "description": "Land collateral."},
     {"code": "VEHICLE", "description": "Vehicle collateral."},
     {"code": "BUILDING", "description": "Building collateral."},
@@ -404,7 +408,7 @@ _LOAN_COLLATERAL_TYPES = [
     {"code": "OTHER", "description": "Other collateral."},
 ]
 
-_LOAN_PENALTY_TYPES = [
+_LOAN_PENALTY_TYPES: list[LookupRow] = [
     {"code": "LATE_PAYMENT", "description": "Late payment penalty."},
     {"code": "MISSED_PAYMENT", "description": "Missed payment penalty."},
     {"code": "EARLY_CLOSURE", "description": "Early closure penalty."},
@@ -412,7 +416,7 @@ _LOAN_PENALTY_TYPES = [
 
 
 # Ledger lookups
-_LEDGER_ACCOUNT_TYPES = [
+_LEDGER_ACCOUNT_TYPES: list[LookupRow] = [
     {"code": "ASSET", "description": "Asset account."},
     {"code": "LIABILITY", "description": "Liability account."},
     {"code": "EQUITY", "description": "Equity account."},
@@ -420,7 +424,7 @@ _LEDGER_ACCOUNT_TYPES = [
     {"code": "EXPENSE", "description": "Expense account."},
 ]
 
-_LEDGER_ACCOUNT_CATEGORIES = [
+_LEDGER_ACCOUNT_CATEGORIES: list[LookupRow] = [
     {"code": "CASH", "description": "Cash account."},
     {"code": "BANK", "description": "Bank account."},
     {"code": "MOBILE_MONEY", "description": "Mobile money account."},
@@ -439,7 +443,7 @@ _LEDGER_ACCOUNT_CATEGORIES = [
     {"code": "LOAN_LOSS_PROVISION", "description": "Loan loss provision."},
 ]
 
-_LEDGER_ENTRY_TYPES = [
+_LEDGER_ENTRY_TYPES: list[LookupRow] = [
     {"code": "SAVINGS_DEPOSIT", "description": "Savings deposit entry."},
     {"code": "SAVINGS_WITHDRAWAL", "description": "Savings withdrawal entry."},
     {"code": "SAVINGS_INTEREST", "description": "Savings interest posting."},
@@ -454,12 +458,12 @@ _LEDGER_ENTRY_TYPES = [
     {"code": "TRANSFER", "description": "Transfer entry."},
 ]
 
-_LEDGER_DR_CR = [
+_LEDGER_DR_CR: list[LookupRow] = [
     {"code": "DEBIT", "description": "Debit line."},
     {"code": "CREDIT", "description": "Credit line."},
 ]
 
-_LEDGER_ENTRY_STATUSES = [
+_LEDGER_ENTRY_STATUSES: list[LookupRow] = [
     {"code": "PENDING", "description": "Pending ledger posting."},
     {"code": "POSTED", "description": "Posted ledger entry."},
     {"code": "REVERSED", "description": "Reversed entry."},
@@ -468,13 +472,13 @@ _LEDGER_ENTRY_STATUSES = [
 
 
 # Share lookups
-_SHARE_PRODUCT_TYPES = [
+_SHARE_PRODUCT_TYPES: list[LookupRow] = [
     {"code": "ORDINARY", "description": "Ordinary share product."},
     {"code": "PREFERENCE", "description": "Preference share product."},
     {"code": "BONUS", "description": "Bonus share product."},
 ]
 
-_SHARE_TX_TYPES = [
+_SHARE_TX_TYPES: list[LookupRow] = [
     {"code": "PURCHASE", "description": "Share purchase transaction."},
     {"code": "TRANSFER", "description": "Share transfer transaction."},
     {"code": "REDEMPTION", "description": "Share redemption transaction."},
@@ -482,7 +486,7 @@ _SHARE_TX_TYPES = [
     {"code": "CORRECTION", "description": "Correction transaction."},
 ]
 
-_DIVIDEND_STATUSES = [
+_DIVIDEND_STATUSES: list[LookupRow] = [
     {"code": "DRAFT", "description": "Draft dividend."},
     {"code": "APPROVED", "description": "Approved dividend."},
     {"code": "PAID", "description": "Paid dividend."},
@@ -492,7 +496,7 @@ _DIVIDEND_STATUSES = [
 
 # Marital Status
 
-_MARITAL_STATUSES = [
+_MARITAL_STATUSES: list[LookupRow] = [
     {"status": "Single", "description": None},
     {"status": "Married", "description": None},
     {"status": "Widowed", "description": None},
@@ -502,7 +506,7 @@ _MARITAL_STATUSES = [
 
 
 # Savings lookup definitions
-_SAVINGS_PRODUCT_TYPES = [
+_SAVINGS_PRODUCT_TYPES: list[LookupRow] = [
     {"code": "ORDINARY", "description": "Regular passbook savings."},
     {"code": "FIXED_DEPOSIT", "description": "Locked for a term."},
     {"code": "GOAL", "description": "Target / purpose savings."},
@@ -510,14 +514,14 @@ _SAVINGS_PRODUCT_TYPES = [
     {"code": "CHRISTMAS", "description": "Seasonal savings."},
 ]
 
-_SAVINGS_ACCOUNT_STATUSES = [
+_SAVINGS_ACCOUNT_STATUSES: list[LookupRow] = [
     {"code": "ACTIVE", "description": "Account is active."},
     {"code": "DORMANT", "description": "Account is dormant."},
     {"code": "FROZEN", "description": "Account is frozen."},
     {"code": "CLOSED", "description": "Account is closed."},
 ]
 
-_SAVINGS_TX_TYPES = [
+_SAVINGS_TX_TYPES: list[LookupRow] = [
     {"code": "DEPOSIT", "description": "Deposit transaction."},
     {"code": "WITHDRAWAL", "description": "Withdrawal transaction."},
     {"code": "INTEREST", "description": "Interest posting."},
@@ -525,7 +529,7 @@ _SAVINGS_TX_TYPES = [
     {"code": "TRANSFER", "description": "Transfer transaction."},
 ]
 
-_SAVINGS_PRODUCTS = [
+_SAVINGS_PRODUCTS: list[LookupRow] = [
     {
         "name": "Ordinary Savings",
         "code": "ORDINARY",
@@ -597,7 +601,7 @@ _SAVINGS_PRODUCTS = [
 # Default Chart of Accounts
 # Note: These are templates to be seeded per-organization.
 # Set organisation_id when seeding to link to a specific org.
-_DEFAULT_CHART_OF_ACCOUNTS = [
+_DEFAULT_CHART_OF_ACCOUNTS: list[LookupRow] = [
     # ========== ASSET ACCOUNTS ==========
     # Cash Accounts
     {
@@ -828,7 +832,7 @@ _DEFAULT_CHART_OF_ACCOUNTS = [
 
 
 # Payment Channel Configurations
-_PAYMENT_CHANNELS = [
+_PAYMENT_CHANNELS: list[LookupRow] = [
     {
         "channel_code": "CASH",
         "channel_name": "Cash Payment",
