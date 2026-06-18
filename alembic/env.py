@@ -13,6 +13,22 @@ from app.src.models import Base
 
 from app.src.config.settings import settings
 
+import os
+from logging.config import fileConfig
+from sqlalchemy import engine_from_config, pool
+from alembic import context
+
+# --- ADD THESE TWO LINES TO THE TOP OF alembic/env.py ---
+from dotenv import load_dotenv
+load_dotenv()  # This pulls values from your local .env file
+
+config = context.config
+
+# --- OVERRIDE THE INI URL WITH YOUR ENVIRONMENT VARIABLE ---
+if os.getenv("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+
+
 config = context.config
 
 

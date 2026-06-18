@@ -1,19 +1,12 @@
-import psycopg2
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
-    SECRET_KEY: str
-    ALGORITHM: str
+  DATABASE_URL: str
+  SECRET_KEY: str
+  ALGORITHM: str = "HS256"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-    @property
-    def DATABASE_URL(self) -> str:
-        return f"{self.DATABASE_URL}"
+  model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()

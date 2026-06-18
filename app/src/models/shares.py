@@ -108,7 +108,10 @@ class ShareAccount(TimestampMixin, Base):
     member = relationship("Member", back_populates="share_accounts")
     product = relationship("ShareProduct", back_populates="accounts")
     transactions = relationship(
-        "ShareTransaction", back_populates="account", lazy="dynamic"
+        "ShareTransaction",
+        back_populates="account",
+        lazy="dynamic",
+        foreign_keys="ShareTransaction.account_id",
     )
     dividend_payments = relationship(
         "DividendPayment", back_populates="share_account", lazy="dynamic"
