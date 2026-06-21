@@ -44,7 +44,7 @@ def _extract_location(
     return resolved_country, resolved_city
 
 
-@router.post("/signin", response_model=UserResponse)
+@router.post("/signin")
 def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
     """
     Authenticate a user and issue a JWT access token.
