@@ -52,11 +52,16 @@ async def lifespan(app: FastAPI):
 
 # 2. Pass the lifespan to the FastAPI instance
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan,
+              servers= [
+                  {"url": "https://sacco-api-pb2n.onrender.com", "description": "Production environment"},
+        {"url": "http://localhost:8000", "description": "Local environment"}
+    ])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
+    allow_credentials=False,
     allow_headers=["*"],
 )
 app.include_router(api_router, prefix="/api/v1")
