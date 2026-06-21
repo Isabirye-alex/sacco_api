@@ -1,5 +1,6 @@
 """Module for app.src.main."""
 
+import logging  # 1. Import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -12,25 +13,39 @@ from app.src.api.routes.app_routes import api_router
 from app.src.config.database import get_db
 from app.src.dependencies.lookups import seed_lookups
 
+# 2. Configure and define the logger instance
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 
 # 1. Define the lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic: run database migrations first so lookup tables exist.
-    db_generator = get_db()
-    db = next(db_generator)
+    db_generator = None
     try:
+        logger.info("Initializing database session...")
+        db_generator = get_db()
+        db = next(db_generator)
+        
+        logger.info("Running database migrations...")
         alembic_cfg = Config(str(ROOT_DIR / "alembic.ini"))
         alembic_cfg.set_main_option(
             "script_location", str(ROOT_DIR / "alembic")
         )
         command.upgrade(alembic_cfg, "head")
+        
+        logger.info("Seeding lookup tables...")
         seed_lookups(db)
+        logger.info("Database initialization successful.")
+    except Exception as e:
+        # This will now catch database connection failures, migration errors, and seeding errors
+        logger.error(f"CRITICAL: Database initialization failed: {e}", exc_info=True)
     finally:
-        # Ensure the generator closes/cleans up properly.
-        next(db_generator, None)
+        # Clean up the generator only if it was successfully initialized
+        if db_generator is not None:
+            next(db_generator, None)
 
     yield
     # Shutdown logic (if any) can go here
