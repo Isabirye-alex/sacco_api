@@ -131,21 +131,17 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
                 "Login audit entry created successfully for user_id=%s",
                 user.id,
             )
-        except Exception as exc:
+        except Exception:
             logger.exception(
-                "Failed to create login audit entry for user_id=%s",
+                "Failed to create login audit entry for user_id=%s; "
+                "continuing without blocking sign-in.",
                 user.id,
             )
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not record login audit",
-            ) from exc
 
         token_payload = {  # type: ignore
             "sub": str(user.id),
             "member_id": str(user.member_id) if user.member_id else None,
         }
-
         logger.info(
             "Attempting to generate access token for user_id=%s",
             user.id,
