@@ -169,44 +169,43 @@ def create_member(
                 generated_no,
             )
 
-            with db.begin_nested():
-                # Create member
-                db.add(db_member)
-                db.flush()
+            # Create member
+            db.add(db_member)
+            db.flush()
 
-                logger.info(
-                    "Member created successfully. id=%s",
-                    db_member.id,
-                )
+            logger.info(
+                "Member created successfully. id=%s",
+                db_member.id,
+            )
 
-                # Create savings account
-                _create_member_savings_account(
-                    db,
-                    db_member,
-                )
+            # Create savings account
+            _create_member_savings_account(
+                db,
+                db_member,
+            )
 
-                logger.info(
-                    "Savings account created successfully."
-                )
+            logger.info(
+                "Savings account created successfully."
+            )
 
-                # Create login user
-                db_user = User(
-                    member_id=db_member.id,
-                    email=user.email,
-                    first_name=user.first_name,
-                    last_name=user.last_name,
-                    phone=user.phone,
-                    hashed_password=hash_password(
-                        user.password
-                    ),
-                )
+            # Create login user
+            db_user = User(
+                member_id=db_member.id,
+                email=user.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                phone=user.phone,
+                hashed_password=hash_password(
+                    user.password
+                ),
+            )
 
-                db.add(db_user)
-                db.flush()
+            db.add(db_user)
+            db.flush()
 
-                logger.info(
-                    "User account created successfully."
-                )
+            logger.info(
+                "User account created successfully."
+            )
 
             db.commit()
             db.refresh(db_member)
