@@ -72,7 +72,7 @@ def create_member_endpoint(member: MemberCreate,user: UserCreate ,db: Session = 
         # Do not expose raw database errors or tracebacks to the API customer
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected internal system error occurred. Please try again later.",
+            detail=f"An unexpected internal system error occurred. Please try again later. {e}",
         )
 
 
