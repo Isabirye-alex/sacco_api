@@ -1,13 +1,13 @@
 """Module for app.src.crud.member.member_crud."""
 
 from datetime import date
-from app.src.schemas.users.user_schema import UserCreate
-from app.src.utils.generate_random_account_number import generate_unique_account_no
-from sqlalchemy.orm import selectinload
+import logging
+
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
+
 from app.src.models.member import (
     Member,
     Gender,
@@ -30,37 +30,80 @@ from app.src.schemas.member.member_schema import (
     RoleCreate,
     NextOfKinCreate,
 )
-from app.src.utils.generate_random_member_no import register_member_safely
+from app.src.schemas.users.user_schema import UserCreate
+from app.src.utils.auth import hash_password
+from app.src.utils.generate_random_account_number import (
+    generate_unique_account_no,
+)
+from app.src.utils.generate_random_member_no import (
+    register_member_safely,
+)
+
+logger = logging.getLogger(__name__)
 
 
-def _resolve_savings_account_status_id(db: Session, code: str = "ACTIVE"):
-    status_obj = db.query(SavingsAccountStatus).filter_by(code=code).first()
+def _resolve_savings_account_status_id(
+    db: Session,
+    code: str = "ACTIVE",
+):
+    status_obj = (
+        db.query(SavingsAccountStatus)
+        .filter_by(code=code)
+        .first()
+    )
+
     if not status_obj:
-        status_obj = SavingsAccountStatus(code=code, description=code)
+        status_obj = SavingsAccountStatus(
+            code=code,
+            description=code,
+        )
         db.add(status_obj)
         db.flush()
+
     return status_obj.id
 
 
-def _find_default_savings_product(db: Session) -> SavingsProduct:
+def _find_default_savings_product(
+    db: Session,
+) -> SavingsProduct:
     product = (
-        db.query(SavingsProduct).filter_by(code="ORDINARY", is_active=True).first()
+        db.query(SavingsProduct)
+        .filter_by(
+            code="ORDINARY",
+            is_active=True,
+        )
+        .first()
     )
+
     if not product:
-        product = db.query(SavingsProduct).filter_by(is_active=True).first()
+        product = (
+            db.query(SavingsProduct)
+            .filter_by(is_active=True)
+            .first()
+        )
 
     if not product:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No active savings product is configured. Please configure a savings product before creating members.",
+            detail=(
+                "No active savings product is configured. "
+                "Please configure a savings product before "
+                "creating members."
+            ),
         )
 
     return product
 
 
-def _create_member_savings_account(db: Session, member: Member):
+def _create_member_savings_account(
+    db: Session,
+    member: Member,
+) -> SavingsAccount:
     product = _find_default_savings_product(db)
-    status_id = _resolve_savings_account_status_id(db, "ACTIVE")
+    status_id = _resolve_savings_account_status_id(
+        db,
+        "ACTIVE",
+    )
 
     account_number = generate_unique_account_no(db)
 
@@ -73,13 +116,26 @@ def _create_member_savings_account(db: Session, member: Member):
         status_id=status_id,
         opened_date=member.joined_date or date.today(),
     )
+
     db.add(savings_account)
     db.flush()
+
     return savings_account
 
 
-def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member:
-    from app.src.utils.auth import hash_password
+def create_member(
+    db: Session,
+    member: MemberCreate,
+    user: UserCreate,
+) -> Member:
+    """
+    Creates:
+    1. Member
+    2. Default savings account
+    3. User login account
+
+    All operations are performed atomically.
+    """
 
     max_retries = 10
     attempts = 0
@@ -109,113 +165,227 @@ def create_member(db: Session, member: MemberCreate, user: UserCreate) -> Member
         )
 
         try:
-            # Wrap execution inside a nested savepoint transaction block
-            with db.begin_nested():
-                db.add(db_member)
-                db.flush()  # Populates db_member.id so savings account FK works
-                _create_member_savings_account(db, db_member)
+            logger.info(
+                "Creating member with member_no=%s",
+                generated_no,
+            )
 
-                # Create User record linked to the new member
+            with db.begin_nested():
+                # Create member
+                db.add(db_member)
+                db.flush()
+
+                logger.info(
+                    "Member created successfully. id=%s",
+                    db_member.id,
+                )
+
+                # Create savings account
+                _create_member_savings_account(
+                    db,
+                    db_member,
+                )
+
+                logger.info(
+                    "Savings account created successfully."
+                )
+
+                # Create login user
                 db_user = User(
                     member_id=db_member.id,
                     email=user.email,
                     first_name=user.first_name,
                     last_name=user.last_name,
                     phone=user.phone,
-                    hashed_password=hash_password(user.password),
+                    hashed_password=hash_password(
+                        user.password
+                    ),
                 )
+
                 db.add(db_user)
                 db.flush()
-            # If everything inside the savepoint succeeded, commit it globally
+
+                logger.info(
+                    "User account created successfully."
+                )
+
             db.commit()
             db.refresh(db_member)
+
+            logger.info(
+                "Member registration completed successfully."
+            )
+
             return db_member
 
         except IntegrityError as e:
-            # The savepoint block automatically rolled back the failed insert state
+            db.rollback()
+
             error_msg = str(e.orig).lower()
-            print(error_msg)
 
-            # CASE A: Check if the collision was specifically due to the member number
-            # Update 'uq_organisation_member_no' to match your actual database constraint name
-            if "uq_organisation_member_no" in error_msg or "member_no" in error_msg:
+            logger.error(
+                "IntegrityError during member creation: %s",
+                error_msg,
+            )
+
+            # Retry only for member number collisions
+            if (
+                "member_no" in error_msg
+                or "uq_organisation_member_no" in error_msg
+            ):
                 attempts += 1
-                continue  # Loop back, get a fresh number, and try again seamlessly!
+                logger.warning(
+                    "Member number collision detected. "
+                    "Retry attempt %s/%s",
+                    attempts,
+                    max_retries,
+                )
+                continue
 
-            # CASE B: It's an integrity violation unrelated to member_no (no point in retrying)
-            if "phone_primary" in error_msg:
+            if (
+                "phone_primary" in error_msg
+                or "member_phone_primary_key" in error_msg
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="A member with this primary phone number already exists.",
+                    detail=(
+                        "A member with this primary phone "
+                        "number already exists."
+                    ),
                 )
-            elif (
-                "foreign key constraint" in error_msg
+
+            if (
+                "email" in error_msg
+                and "unique" in error_msg
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        "A member or user with this email "
+                        "already exists."
+                    ),
+                )
+
+            if (
+                "foreign key" in error_msg
                 or "violates foreign key" in error_msg
             ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid reference ID provided. Please verify organization, branch, gender, and status IDs.",
+                    detail=(
+                        "Invalid reference provided. "
+                        "Please verify branch, gender, "
+                        "marital status and related IDs."
+                    ),
                 )
 
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Database integrity violation occurred while saving member details.",
+                detail=(
+                    "Database integrity violation occurred "
+                    "while creating the member."
+                ),
             )
 
-    # Safety valve trigger
+        except HTTPException:
+            db.rollback()
+            raise
+
+        except Exception as e:
+            db.rollback()
+
+            logger.exception(
+                "Unexpected error during member creation."
+            )
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=(
+                    "An unexpected error occurred while "
+                    "creating the member."
+                ),
+            ) from e
+
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Failed to allocate a unique member number due to excessive concurrent registration traffic.",
+        detail=(
+            "Failed to generate a unique member number "
+            "after multiple attempts."
+        ),
     )
 
 
-def create_gender(db: Session, gender: GenderCreate):
+def create_gender(
+    db: Session,
+    gender: GenderCreate,
+):
     db_gender = Gender(
         gender=gender.gender,
         description=gender.description,
     )
+
     db.add(db_gender)
     db.flush()
     db.refresh(db_gender)
     db.commit()
+
     return db_gender
 
 
-def create_member_status(db: Session, status: MemberStatusCreate):
+def create_member_status(
+    db: Session,
+    status_data: MemberStatusCreate,
+):
     db_status = MemberStatus(
-        status=status.status,
-        description=status.description,
+        status=status_data.status,
+        description=status_data.description,
     )
-    db.add(db_status)
-    db.flush()
-    db.refresh(db_status)
-    return db_status
 
-
-def create_marital_status(db: Session, status: MaritalStatusCreate):
-    db_status = MaritalStatus(
-        status=status.status,
-    )
     db.add(db_status)
     db.flush()
     db.refresh(db_status)
     db.commit()
+
     return db_status
 
 
-def create_role(db: Session, role: RoleCreate):
+def create_marital_status(
+    db: Session,
+    status_data: MaritalStatusCreate,
+):
+    db_status = MaritalStatus(
+        status=status_data.status,
+    )
+
+    db.add(db_status)
+    db.flush()
+    db.refresh(db_status)
+    db.commit()
+
+    return db_status
+
+
+def create_role(
+    db: Session,
+    role: RoleCreate,
+):
     db_role = Role(
         role=role.role,
         description=role.description,
     )
+
     db.add(db_role)
     db.flush()
     db.refresh(db_role)
     db.commit()
+
     return db_role
 
 
-def create_next_of_kin(db: Session, kin: NextOfKinCreate):
+def create_next_of_kin(
+    db: Session,
+    kin: NextOfKinCreate,
+):
     db_kin = NextOfKin(
         member_id=kin.member_id,
         first_name=kin.first_name,
@@ -228,15 +398,20 @@ def create_next_of_kin(db: Session, kin: NextOfKinCreate):
         is_primary=kin.is_primary,
         marital_status_id=kin.marital_status_id,
     )
+
     db.add(db_kin)
     db.flush()
     db.refresh(db_kin)
     db.commit()
+
     return db_kin
 
 
-def get_current_member(db: Session, member_id: str):
-    current_user = (
+def get_current_member(
+    db: Session,
+    member_id: str,
+):
+    return (
         db.query(Member)
         .filter(Member.id == member_id)
         .options(
@@ -246,11 +421,9 @@ def get_current_member(db: Session, member_id: str):
             selectinload(Member.next_of_kin),
             selectinload(Member.marital_status),
             selectinload(Member.gender),
-            selectinload(Member.marital_status),
             selectinload(Member.branch),
             selectinload(Member.user),
-            selectinload(Member.transactions)
+            selectinload(Member.transactions),
         )
         .first()
     )
-    return current_user
