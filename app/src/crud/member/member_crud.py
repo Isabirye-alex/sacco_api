@@ -4,7 +4,6 @@ from datetime import date
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -301,8 +300,8 @@ def create_member(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=(
-                    "An unexpected error occurred while "
-                    "creating the member."
+                    f"An unexpected error occurred while "
+                    f"creating the member. {e}"
                 ),
             ) from e
 
