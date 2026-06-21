@@ -31,32 +31,36 @@ async def lifespan(app: FastAPI):
         
         logger.info("Running database migrations...")
         alembic_cfg = Config(str(ROOT_DIR / "alembic.ini"))
-        alembic_cfg.set_main_option(
-            "script_location", str(ROOT_DIR / "alembic")
-        )
+        alembic_cfg.set_main_option("script_location", str(ROOT_DIR / "alembic"))
         command.upgrade(alembic_cfg, "head")
         
         logger.info("Seeding lookup tables...")
-        seed_lookups(db)
+        try:
+            seed_lookups(db)
+            db.commit()  # Cleanly seal the startup insertions
+        except Exception as seed_err:
+            db.rollback()  # 👈 CRITICAL: If seed fails/duplicates on Render, rollback instantly!
+            logger.warning(f"Seeding skipped or encountered conflict: {seed_err}")
+
         logger.info("Database initialization successful.")
     except Exception as e:
-        # This will now catch database connection failures, migration errors, and seeding errors
-        logger.error(f"CRITICAL: Database initialization failed: {e}", exc_info=True)
+        logger.error(f"CRITICAL: Database startup sequence failed: {e}", exc_info=True)
     finally:
-        # Clean up the generator only if it was successfully initialized
         if db_generator is not None:
             next(db_generator, None)
 
-    yield
-    # Shutdown logic (if any) can go here
+    yield  # 👈 CRITICAL: Tells FastAPI startup is done; ready to receive requests!
 
 # 2. Pass the lifespan to the FastAPI instance
 
-app = FastAPI(lifespan=lifespan,
-              servers= [
-                  {"url": "https://sacco-api-pb2n.onrender.com", "description": "Production environment"},
+app = FastAPI(
+    lifespan=lifespan,
+    servers=[
+        {"url": "https://sacco-api-pb2n.onrender.com", "description": "Production environment"},
         {"url": "http://localhost:8000", "description": "Local environment"}
-    ])
+    ]
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
