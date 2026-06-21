@@ -4,6 +4,6 @@ from sqlalchemy.orm import Session
 from app.src.models.member import User
 
 
-def get_user_by_email(db: Session, email):
-    user = db.query(User).filter(User.email == email).first()
+def get_user_by_email(db: Session, email): # type: ignore
+    user = db.query(User).filter(User.email == email).first() # type: ignore
     return user

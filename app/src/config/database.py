@@ -10,7 +10,7 @@ from app.src.config.settings import settings
 load_dotenv()
 
 # Use the configured primary database URL for runtime connections.
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = settings.ONLINE_DATABASE_URL
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not configured.")

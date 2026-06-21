@@ -64,7 +64,7 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_email(db, auth.email)
     failed_attempts = 0
     if user:
-        failed_attempts = get_login_attempt_count(db, user.id)
+        failed_attempts = get_login_attempt_count(db, user.id) # type: ignore
 
     location_country, location_city = _extract_location(
         request, auth.location_country, auth.location_city
@@ -106,7 +106,7 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
     )
     create_login_log(db, log_entry)
 
-    token_payload = {
+    token_payload = { # type: ignore
         "sub": str(user.id),
         "member_id": str(user.member_id) if user.member_id else None,
     }
