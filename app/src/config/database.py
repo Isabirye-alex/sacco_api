@@ -27,6 +27,7 @@ SessionLocal = sessionmaker(
     bind=engine,
     autoflush=False,
     autocommit=False,
+    join_transaction_mode="create_savepoint"
 )
 
 
