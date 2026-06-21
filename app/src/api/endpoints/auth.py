@@ -1,5 +1,7 @@
 """Authentication endpoints for sign-in, token issuance, and login auditing."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
@@ -12,6 +14,8 @@ from app.src.utils.auth import (
     verify_password,
     create_access_token,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -110,6 +114,26 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
         "sub": str(user.id),
         "member_id": str(user.member_id) if user.member_id else None,
     }
-    access_token = create_access_token(data=token_payload)
+
+    logger.info(
+        "Attempting to generate access token for user_id=%s",
+        user.id,
+    )
+
+    try:
+        access_token = create_access_token(data=token_payload)
+        logger.info(
+            "Access token generated successfully for user_id=%s",
+            user.id,
+        )
+    except Exception as exc:
+        logger.exception(
+            "Failed to generate access token for user_id=%s",
+            user.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not generate access token",
+        ) from exc
 
     return {"access_token": access_token, "token_type": "bearer"}
