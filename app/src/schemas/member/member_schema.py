@@ -10,7 +10,7 @@ from app.src.schemas.loans.loan_schema import LoanResponse
 from app.src.schemas.savings import SavingsAccountResponse, SavingsTransactionResponse
 from app.src.schemas.shares.share_schema import ShareAccountResponse
 from app.src.schemas.tenant.tenant_schema import BranchResponse
-from app.src.schemas.users.user_schema import UserBaseResponse, UserResponse
+from app.src.schemas.users.user_schema import UserBaseResponse
 
 
 class GenderCreate(BaseModel):

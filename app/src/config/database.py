@@ -10,10 +10,10 @@ from app.src.config.settings import settings
 load_dotenv()
 
 # Use the configured primary database URL for runtime connections.
-DATABASE_URL = settings.ONLINE_DATABASE_URL
+DATABASE_URL = settings.DATABASE_URL
 
 if not DATABASE_URL:
-    raise RuntimeError("ONLINE_DATABASE_URL is not configured.")
+    raise RuntimeError("DATABASE_URL is not configured.")
 
 # Create the SQLAlchemy engine for database access.
 engine = create_engine(
