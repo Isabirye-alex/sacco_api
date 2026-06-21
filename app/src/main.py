@@ -14,7 +14,11 @@ from app.src.api.routes.app_routes import api_router
 from app.src.config.database import get_db, engine 
 from app.src.dependencies.lookups import seed_lookups
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    force=True,
+)
 logger = logging.getLogger(__name__)
 
 ROOT_DIR = Path(__file__).resolve().parents[2]

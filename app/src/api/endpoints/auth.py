@@ -65,75 +65,117 @@ def signin(auth: UserSignIn, request: Request, db: Session = Depends(get_db)):
     Returns:
         A token response containing the access token and token type.
     """
-    user = get_user_by_email(db, auth.email)
-    failed_attempts = 0
-    if user:
-        failed_attempts = get_login_attempt_count(db, user.id) # type: ignore
+    try:
+        logger.info(
+            "Signin request received for email=%s",
+            auth.email,
+        )
 
-    location_country, location_city = _extract_location(
-        request, auth.location_country, auth.location_city
-    )
+        user = get_user_by_email(db, auth.email)
+        logger.info(
+            "User lookup result for email=%s: %s",
+            auth.email,
+            user is not None,
+        )
 
-    if not user or not verify_password(auth.password, user.hashed_password):
-        attempt_count = failed_attempts + 1
+        failed_attempts = 0
+        if user:
+            failed_attempts = get_login_attempt_count(db, user.id)  # type: ignore
+
+        location_country, location_city = _extract_location(
+            request, auth.location_country, auth.location_city
+        )
+
+        if not user or not verify_password(auth.password, user.hashed_password):
+            attempt_count = failed_attempts + 1
+            log_entry = LoginLogs(
+                member_id=user.member_id if user else None,
+                ip_address=request.headers.get(
+                    "x-forwarded-for", request.client.host if request.client else None
+                ),
+                user_agent=request.headers.get("user-agent"),
+                status="failure",
+                failure_reason="Invalid credentials",
+                attempts=attempt_count,
+                session_id=None,
+                location_country=location_country,
+                location_city=location_city,
+            )
+            create_login_log(db, log_entry)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password",
+            )
+
+        attempt_count = 1
         log_entry = LoginLogs(
-            member_id=user.member_id if user else None,
+            user_id=user.id,
             ip_address=request.headers.get(
                 "x-forwarded-for", request.client.host if request.client else None
             ),
             user_agent=request.headers.get("user-agent"),
-            status="failure",
-            failure_reason="Invalid credentials",
+            status="success",
+            failure_reason=None,
             attempts=attempt_count,
             session_id=None,
             location_country=location_country,
             location_city=location_city,
         )
-        create_login_log(db, log_entry)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
-        )
-
-    attempt_count = 1
-    log_entry = LoginLogs(
-        user_id=user.id,
-        ip_address=request.headers.get(
-            "x-forwarded-for", request.client.host if request.client else None
-        ),
-        user_agent=request.headers.get("user-agent"),
-        status="success",
-        failure_reason=None,
-        attempts=attempt_count,
-        session_id=None,
-        location_country=location_country,
-        location_city=location_city,
-    )
-    create_login_log(db, log_entry)
-
-    token_payload = { # type: ignore
-        "sub": str(user.id),
-        "member_id": str(user.member_id) if user.member_id else None,
-    }
-
-    logger.info(
-        "Attempting to generate access token for user_id=%s",
-        user.id,
-    )
-
-    try:
-        access_token = create_access_token(data=token_payload)
         logger.info(
-            "Access token generated successfully for user_id=%s",
+            "Recording successful login attempt for user_id=%s",
             user.id,
         )
+        try:
+            create_login_log(db, log_entry)
+            logger.info(
+                "Login audit entry created successfully for user_id=%s",
+                user.id,
+            )
+        except Exception as exc:
+            logger.exception(
+                "Failed to create login audit entry for user_id=%s",
+                user.id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not record login audit",
+            ) from exc
+
+        token_payload = {  # type: ignore
+            "sub": str(user.id),
+            "member_id": str(user.member_id) if user.member_id else None,
+        }
+
+        logger.info(
+            "Attempting to generate access token for user_id=%s",
+            user.id,
+        )
+
+        try:
+            access_token = create_access_token(data=token_payload)
+            logger.info(
+                "Access token generated successfully for user_id=%s",
+                user.id,
+            )
+        except Exception as exc:
+            logger.exception(
+                "Failed to generate access token for user_id=%s",
+                user.id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not generate access token",
+            ) from exc
+
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.exception(
-            "Failed to generate access token for user_id=%s",
-            user.id,
+            "Unexpected exception during signin for email=%s",
+            auth.email,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not generate access token",
+            detail="Internal server error during sign-in",
         ) from exc
-
-    return {"access_token": access_token, "token_type": "bearer"}
